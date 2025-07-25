@@ -1,43 +1,1604 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaccia Gioco di Carte Pokémon</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter (o un font più "gamey" se disponibile e adatto) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Manteniamo Inter, ma puoi cambiarlo per un font pixelato se preferisci */
+            margin: 0;
+            /* Sfondo a tema Pokémon (es. verde erba scuro, blu cielo, ecc.) */
+            background: linear-gradient(to bottom right, #4CAF50, #2E7D32); /* Verde scuro/erba */
+            color: #E0E0E0; /* Testo chiaro */
+        }
+        /* Stile per la modale della fotocamera */
+        .camera-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .camera-modal-content {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+        }
+        .camera-video {
+            width: 100%;
+            max-width: 600px; /* Limita la larghezza del video */
+            height: auto;
+            border-radius: 8px;
+            background-color: black;
+            margin-bottom: 15px;
+        }
+        /* Nasconde la canvas utilizzata per catturare l'immagine */
+        .camera-canvas {
+            display: none;
+        }
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+        /* Stili aggiuntivi per i pulsanti tematici */
+        .btn-theme {
+            padding: 0.75rem 1.5rem; /* Aumentato padding */
+            border-radius: 9999px; /* Completamente arrotondato */
+            font-weight: 700; /* Bold */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Ombra testo */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Ombra più pronunciata */
+            transition: all 0.2s ease-in-out;
+            border: 2px solid;
+            background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+        }
+        .btn-theme:hover {
+            transform: translateY(-2px); /* Effetto sollevamento */
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+        }
+        .btn-theme:active {
+            transform: translateY(1px); /* Effetto click */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-red {
+            --tw-gradient-stops: #EF4444, #DC2626; /* from-red-500 to-red-700 */
+            border-color: #B91C1C; /* border-red-800 */
+            color: white;
+        }
+        .btn-green {
+            --tw-gradient-stops: #22C55E, #16A34A; /* from-green-500 to-green-700 */
+            border-color: #15803D; /* border-green-800 */
+            color: white;
+        }
+        .btn-blue {
+            --tw-gradient-stops: #3B82F6, #2563EB; /* from-blue-500 to-blue-700 */
+            border-color: #1D4ED8; /* border-blue-800 */
+            color: white;
+        }
+        .btn-purple {
+            --tw-gradient-stops: #A855F7, #9333EA; /* from-purple-500 to-purple-700 */
+            border-color: #7E22CE; /* border-purple-800 */
+            color: white;
+        }
+        .btn-yellow {
+            --tw-gradient-stops: #FACC15, #EAB308; /* from-yellow-400 to-yellow-600 */
+            border-color: #CA8A04; /* border-yellow-700 */
+            color: #333; /* Testo scuro per il giallo */
+        }
+        .btn-orange {
+            --tw-gradient-stops: #F97316, #EA580C; /* from-orange-500 to-orange-700 */
+            border-color: #C2410C; /* border-orange-800 */
+            color: white;
+        }
+        .btn-gray {
+            --tw-gradient-stops: #6B7280, #4B5563; /* from-gray-500 to-gray-700 */
+            border-color: #374151; /* border-gray-800 */
+            color: white;
+        }
+
+        /* Stili per le label dei contatori */
+        .counter-label {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #F0F0F0; /* Light gray */
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+        }
+        /* Stili per i valori dei contatori */
+        .counter-value {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 800; /* font-extrabold */
+            text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        }
+
+        /* Stile per i pulsanti icona */
+        .icon-btn {
+            @apply flex items-center justify-center w-12 h-12 rounded-full text-2xl shadow-md transition-all duration-200 ease-in-out border-2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+        }
+        .icon-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+        }
+        .icon-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .icon-btn.btn-blue {
+             --tw-gradient-stops: #3B82F6, #2563EB; /* from-blue-500 to-blue-700 */
+            border-color: #1D4ED8; /* border-blue-800 */
+            color: white;
+        }
+        .icon-btn.btn-purple {
+            --tw-gradient-stops: #A855F7, #9333EA; /* from-purple-500 to-purple-700 */
+            border-color: #7E22CE; /* border-purple-800 */
+            color: white;
+        }
+
+        /* Stili per i segnalini medaglia */
+        .medal-icon {
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-3xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md;
+        }
+        .medal-icon.active {
+            @apply scale-110 ring-2 ring-offset-2 ring-offset-green-700;
+        }
+
+        /* Nasconde le frecce (spinner) dagli input di tipo number */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield; /* Per Firefox */
+        }
+
+        /* Animazione per il banner della moneta */
+        @keyframes fadeInOutCoin {
+            0% { opacity: 0; transform: translateY(-50%) translateX(20px); }
+            10% { opacity: 1; transform: translateY(-50%) translateX(0); }
+            90% { opacity: 1; transform: translateY(-50%) translateX(0); }
+            100% { opacity: 0; transform: translateY(-50%) translateX(20px); }
+        }
+        .animate-fade-in-out-coin {
+            animation: fadeInOutCoin 3s ease-in-out forwards;
+        }
+
+        /* Animazione per il banner di confusione (opzionale, per distinguere) */
+        @keyframes fadeInOutConfusion {
+            0% { opacity: 0; transform: translateY(-50%) scale(0.8); }
+            10% { opacity: 1; transform: translateY(-50%) scale(1); }
+            90% { opacity: 1; transform: translateY(-50%) scale(1); }
+            100% { opacity: 0; transform: translateY(-50%) scale(0.8); }
+        }
+        .animate-fade-in-out-confusion {
+            animation: fadeInOutConfusion 3s ease-in-out forwards;
+        }
+        /* Animazione per il banner dado movimento */
+        @keyframes fadeInOutMovementDice {
+            0% { opacity: 0; transform: scale(0.5); }
+            10% { opacity: 1; transform: scale(1); }
+            90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+        .animate-fade-in-out-movement-dice {
+            animation: fadeInOutMovementDice 5s ease-out forwards;
+        }
+
+        /* Stili per i pallini EXP */
+        .exp-dot {
+            width: 1rem; /* 16px */
+            height: 1rem; /* 16px */
+            border-radius: 50%;
+            background-color: #4B5563; /* gray-600, inactive */
+            border: 2px solid #374151; /* gray-700 */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-out;
+        }
+        .exp-dot.active-yellow {
+            background-color: #FACC15; /* yellow-400 */
+            border-color: #EAB308; /* yellow-600 */
+            transform: scale(1.1);
+        }
+        .exp-dot.active-blue {
+            background-color: #3B82F6; /* blue-500 */
+            border-color: #2563EB; /* blue-700 */
+            transform: scale(1.1);
+        }
+        /* Stile per il banner globale dei dadi (ATTACCA/RITIRATA) */
+        @keyframes fadeInOutDiceRoll {
+            0% { opacity: 0; transform: scale(0.7); }
+            10% { opacity: 1; transform: scale(1); }
+            90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.7); }
+        }
+        .animate-fade-in-out-dice-roll {
+            animation: fadeInOutDiceRoll 3s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    <!-- React, ReactDOM, and Babel for JSX transformation -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+        // Tutte le definizioni dei componenti React sono qui all'interno di un unico blocco script
+        // per garantire che Babel possa parsare correttamente JSX e JS.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+        // Mapping dei numeri ai simboli dei dadi (emoji) - Globale per accessibilità
+        const diceFaces = {
+            1: '⚀',
+            2: '⚁',
+            3: '⚂',
+            4: '⚃',
+            5: '⚄',
+            6: '⚅',
+        };
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+        // CameraModal Component
+        // Modale per l'accesso e la cattura di immagini dalla fotocamera.
+        function CameraModal({ isOpen, onClose, onCapture }) {
+            const videoRef = React.useRef(null);
+            const canvasRef = React.useRef(null);
+            const [currentStream, setCurrentStream] = React.useState(null);
+            const [error, setError] = React.useState(null);
+            const [availableCameras, setAvailableCameras] = React.useState([]);
+            const [selectedCameraId, setSelectedCameraId] = React.useState('');
+            const [cameraStatusMessage, setCameraStatusMessage] = React.useState("Inizializzazione fotocamera...");
+
+            // Funzione per fermare lo stream della fotocamera
+            const stopCurrentStream = React.useCallback((s) => {
+                if (s) {
+                    console.log("Stopping tracks for stream:", s);
+                    s.getTracks().forEach(track => {
+                        console.log("Stopping track:", track.kind);
+                        track.stop();
+                    });
+                    console.log("Stream stopped.");
+                }
+                setCurrentStream(null);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = null; // Clear srcObject
+                }
+            }, []);
+
+            // Funzione per avviare lo stream della fotocamera
+            const startCamera = React.useCallback(async (deviceIdToUse, fallback = false) => {
+                setCameraStatusMessage("Avvio fotocamera...");
+                setError(null);
+
+                // Stop any existing stream
+                if (currentStream) {
+                    stopCurrentStream(currentStream);
+                }
+                setCurrentStream(null); // Ensure currentStream is null before attempting to get a new stream
+
+                try {
+                    const constraints = {
+                        video: deviceIdToUse ? { deviceId: { exact: deviceIdToUse } } : true
+                    };
+                    console.log("Attempting getUserMedia with constraints:", constraints);
+                    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = mediaStream;
+                        videoRef.current.onloadedmetadata = () => {
+                            console.log("Video metadata loaded, attempting to play...");
+                            setCameraStatusMessage("Attendere il video...");
+                            videoRef.current.play().then(() => {
+                                console.log("Video played successfully.");
+                                setCameraStatusMessage(""); // Clear message on success
+                            }).catch(playErr => {
+                                console.error("Error playing video after metadata loaded:", playErr);
+                                setError("Errore nella riproduzione del video della fotocamera. Assicurati che il browser consenta l'autoplay e riprova.");
+                                setCameraStatusMessage("Errore riproduzione video.");
+                            });
+                        };
+                        // If metadata already loaded (e.g., re-render), try to play immediately
+                        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA or more
+                             videoRef.current.play().catch(playErr => {
+                                console.error("Error playing video (readyState >=2):", playErr);
+                             });
+                        }
+                    }
+                    setCurrentStream(mediaStream); // Set stream to state after successful acquisition
+                    console.log("Camera started successfully with deviceId:", deviceIdToUse || "generic");
+
+                } catch (err) {
+                    console.error("Error accessing camera with deviceId:", deviceIdToUse, err);
+                    setCameraStatusMessage("Errore nell'accesso alla fotocamera.");
+                    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                        setError("Accesso alla fotocamera negato. Controlla i permessi del browser.");
+                    } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                        if (!fallback && availableCameras.length > 0) { 
+                            console.log("Specific camera not found, attempting generic fallback or first available.");
+                            startCamera(availableCameras[0].deviceId, true); // Fallback to the first available camera if specific fails
+                            return; 
+                        }
+                        setError("Nessuna fotocamera disponibile.");
+                    } else {
+                        setError("Impossibile accedere alla fotocamera: " + err.message);
+                    }
+                    stopCurrentStream(null); // Ensure cleanup on error
+                }
+            }, [stopCurrentStream, currentStream, availableCameras]); 
+
+            // Effetto principale per gestire l'apertura/chiusura della modale e l'inizializzazione della fotocamera
+            React.useEffect(() => {
+                if (!isOpen) {
+                    stopCurrentStream(currentStream); // Stop stream when modal closes
+                    setAvailableCameras([]);
+                    setSelectedCameraId('');
+                    setError(null);
+                    setCameraStatusMessage("Inizializzazione fotocamera...");
+                    return; // Exit early if modal is closed
+                }
+
+                const setupDevicesAndStartInitialCamera = async () => {
+                    setCameraStatusMessage("Ricerca fotocamere...");
+                    try {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        const videoInputs = devices.filter(device => device.kind === 'videoinput');
+                        setAvailableCameras(videoInputs);
+                        console.log("Available cameras detected (initial setup):", videoInputs);
+
+                        if (videoInputs.length === 0) {
+                            setError("Nessuna fotocamera trovata.");
+                            setCameraStatusMessage("Nessuna fotocamera trovata.");
+                            return;
+                        }
+
+                        let targetDeviceId = selectedCameraId; 
+                        // If no selected camera or selected camera is no longer available, pick a default
+                        if (!targetDeviceId || !videoInputs.some(device => device.deviceId === targetDeviceId)) { 
+                            const rearCamera = videoInputs.find(device =>
+                                device.label.toLowerCase().includes('back') ||
+                                device.label.toLowerCase().includes('rear') ||
+                                device.label.toLowerCase().includes('environment')
+                            );
+                            targetDeviceId = rearCamera ? rearCamera.deviceId : videoInputs[0].deviceId; 
+                            console.log("Determined initial targetDeviceId:", targetDeviceId);
+                        }
+                        
+                        setSelectedCameraId(targetDeviceId); 
+                        startCamera(targetDeviceId); 
+
+                    } catch (err) { 
+                        console.error("Errore nell'enumerazione dei dispositivi o nell'avvio iniziale:", err);
+                        setError("Impossibile enumerare le fotocamere o avviare la fotocamera iniziale. Controlla i permessi del browser.");
+                        setCameraStatusMessage("Errore configurazione fotocamera.");
+                    }
+                };
+
+                setupDevicesAndStartInitialCamera();
+
+                // Cleanup function for useEffect
+                return () => {
+                    stopCurrentStream(currentStream); // This ensures stream is stopped when component unmounts or dependencies change
+                };
+            }, [isOpen]); // Keep isOpen as the primary dependency for this effect
+
+            // Effect to restart camera if selectedCameraId changes (user selects from dropdown)
+            React.useEffect(() => {
+                if (isOpen && selectedCameraId && currentStream && currentStream.getTracks().length > 0 && currentStream.getVideoTracks()[0].getSettings().deviceId !== selectedCameraId) {
+                    console.log("Selected camera ID changed by user, restarting camera with:", selectedCameraId);
+                    startCamera(selectedCameraId);
+                }
+            }, [selectedCameraId, isOpen, startCamera, currentStream]);
+
+
+            // Cattura l'immagine dal video feed e la passa tramite onCapture
+            const takePhoto = () => {
+                console.log("Attempting to take photo...");
+                console.log("videoRef.current:", videoRef.current);
+                console.log("canvasRef.current:", canvasRef.current);
+                console.log("currentStream:", currentStream);
+                console.log("videoRef.current?.videoWidth:", videoRef.current?.videoWidth);
+                console.log("videoRef.current?.videoHeight:", videoRef.current?.videoHeight);
+                console.log("videoRef.current?.readyState:", videoRef.current?.readyState);
+
+                // Add an explicit check for videoRef.current before accessing its properties
+                if (!videoRef.current) {
+                    setError("Errore: Elemento video non disponibile.");
+                    setCameraStatusMessage("Errore interno: Video non pronto.");
+                    console.error("videoRef.current is null when attempting to take photo.");
+                    return;
+                }
+
+                if (currentStream && videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0 && videoRef.current.readyState >= 3) { // Check readyState for video
+                    const video = videoRef.current;
+                    const canvas = canvasRef.current; 
+
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    const context = canvas.getContext('2d');
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    const imageDataUrl = canvas.toDataURL('image/png');
+                    onCapture(imageDataUrl);
+                    onClose();
+                } else {
+                    setError("Nessun flusso video attivo o video non pronto per scattare la foto.");
+                    setCameraStatusMessage("Errore: Video non pronto per lo scatto.");
+                    console.error("Condizioni 'Scatta Foto' non soddisfatte:", { videoRef: videoRef.current, canvasRef: canvasRef.current, currentStream: currentStream, videoWidth: videoRef.current?.videoWidth, videoHeight: videoRef.current?.videoHeight, readyState: videoRef.current?.readyState });
+                }
+            };
+
+            if (!isOpen) return null; // Non renderizza nulla se la modale non è aperta
+
+            return (
+                <div className="camera-modal-overlay">
+                    <div className="camera-modal-content">
+                        <h2 className="text-xl font-bold text-blue-400 mb-4">Cattura Immagine dalla Fotocamera</h2>
+                        {error && <p className="text-red-500 mb-4">{error}</p>}
+                        {!error && <p className="text-blue-300 mb-4">{cameraStatusMessage}</p>}
+
+                        {/* Dropdown per la selezione della fotocamera */}
+                        {availableCameras.length > 1 && (
+                            <div className="mb-4 w-full max-w-xs">
+                                <label htmlFor="camera-select" className="block text-gray-300 text-sm font-bold mb-2">
+                                    Seleziona Fotocamera:
+                                </label>
+                                <select
+                                    id="camera-select"
+                                    value={selectedCameraId || ''}
+                                    onChange={(e) => setSelectedCameraId(e.target.value)}
+                                    className="block w-full p-2 rounded-md bg-gray-600 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    {availableCameras.map(camera => (
+                                        <option key={camera.deviceId} value={camera.deviceId}>
+                                            {camera.label || `Fotocamera ${camera.deviceId.substring(0, 5)}...`}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Video Feed or placeholder */}
+                        <div className="relative w-full max-w-md h-72 rounded-lg bg-gray-700 overflow-hidden">
+                            <video ref={videoRef} className="camera-video absolute inset-0 w-full h-full object-cover" autoPlay playsInline muted></video>
+                            {/* Overlay per i messaggi di stato/errore se il video non è pronto */}
+                            {(!currentStream || error || videoRef.current?.readyState < 2) && (
+                                <div className="absolute inset-0 flex justify-center items-center bg-gray-900 bg-opacity-80 text-gray-400 text-center p-4">
+                                    {error || cameraStatusMessage || "Attendere il video..."}
+                                </div>
+                            )}
+                        </div>
+                       
+                        <canvas ref={canvasRef} className="camera-canvas"></canvas>
+                        <div className="flex space-x-4 mt-4">
+                            <button
+                                onClick={takePhoto}
+                                className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors shadow-lg font-bold disabled:opacity-50"
+                                disabled={!currentStream || !videoRef.current || videoRef.current.videoWidth === 0 || videoRef.current.readyState < 3} 
+                            >
+                                Scatta Foto
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-lg font-bold"
+                            >
+                                Chiudi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // CardSlot component - Rappresenta un singolo slot per una carta
+        function CardSlot({ slotIndex, cardData, onUpdateCard, onToggleActivePokemon, isMyTurn, activeCardParalyzed }) { // Added isMyTurn, activeCardParalyzed props
+            // Stato interno per HP Base, Danni Subiti, stati, immagine della carta e punti esperienza,
+            // inizializzati da props o valori predefiniti
+            const [baseHp, setBaseHp] = React.useState(cardData ? cardData.baseHp : 0);
+            const [damageTaken, setDamageTaken] = React.useState(cardData ? cardData.damageTaken : 0);
+            const [statuses, setStatuses] = React.useState(cardData ? cardData.statuses : Array(5).fill(false));
+            const [cardImage, setCardImage] = React.useState(cardData ? cardData.imageUrl : null);
+            const [currentExp, setCurrentExp] = React.useState(cardData ? cardData.exp : 0);
+            const [isActivePokemon, setIsActivePokemon] = React.useState(cardData ? cardData.isActivePokemon : false); // Nuovo stato per il Pokémon attivo
+
+            // Stato per la finestra di conferma (generica) e i dettagli dell'azione da confermare
+            const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
+            const [confirmAction, setConfirmAction] = React.useState(null); // { type: 'replace_image' | 'reset_full_slot', imageUrl?: string }
+
+            // Riferimento per l'elemento input file nascosto
+            const fileInputRef = React.useRef(null);
+            const [showCameraModal, setShowCameraModal] = React.useState(false); // Stato per la modale fotocamera
+
+            // Effetto per sincronizzare lo stato interno con le modifiche della prop cardData
+            React.useEffect(() => {
+                if (cardData) {
+                    setBaseHp(cardData.baseHp);
+                    setDamageTaken(cardData.damageTaken);
+                    setStatuses(cardData.statuses);
+                    setCardImage(cardData.imageUrl);
+                    setCurrentExp(cardData.exp);
+                    setIsActivePokemon(cardData.isActivePokemon); // Sincronizza il nuovo stato
+                } else {
+                    // Resetta lo stato interno se cardData è null (slot pulito)
+                    setBaseHp(0);
+                    setDamageTaken(0);
+                    setStatuses(Array(5).fill(false));
+                    setCardImage(null);
+                    setCurrentExp(0);
+                    setIsActivePokemon(false); // Resetta anche lo stato attivo
+                }
+            }, [cardData]); // La dipendenza da cardData assicura che questo effetto venga eseguito quando cardData cambia
+
+            /**
+             * Aggiorna i dati della carta nel componente genitore.
+             * Questa funzione viene chiamata dopo ogni modifica a HP, Danni, stati, EXP o attivo.
+             */
+            const updateParentCardData = React.useCallback((newBaseHp, newDamageTaken, newStatuses, newImageUrl, newExp, newIsActivePokemon) => {
+                onUpdateCard(slotIndex, {
+                    imageUrl: newImageUrl,
+                    baseHp: newBaseHp,
+                    damageTaken: newDamageTaken,
+                    statuses: newStatuses,
+                    exp: newExp,
+                    isActivePokemon: newIsActivePokemon // Includi il nuovo stato
+                });
+            }, [onUpdateCard, slotIndex]); // Add onUpdateCard and slotIndex to dependencies
+
+            /**
+             * Gestisce la selezione di una nuova immagine (sia da file che da fotocamera).
+             * Se è presente una carta esistente, mostra una finestra di conferma.
+             * Altrimenti, carica l'immagine direttamente.
+             * @param {string} imageUrl - La Data URL della nuova immagine da caricare.
+             */
+            const handleNewImageSelection = (imageUrl) => {
+                if (cardImage) { // Se c'è un'immagine esistente, chiedi all'utente
+                    setConfirmAction({ type: 'replace_image', imageUrl: imageUrl }); // Non include resetData qui, lo gestiamo nella modale
+                    setIsConfirmModalOpen(true);
+                } else { // Nessuna immagine esistente, impostala e aggiorna il genitore
+                    setCardImage(imageUrl);
+                    updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
+                }
+            };
+
+            /**
+             * Gestisce il caricamento di un file immagine locale.
+             * @param {Event} event - L'evento di cambiamento dall'input file.
+             */
+            const handleFileUpload = (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        handleNewImageSelection(reader.result); // Passa la Data URL alla funzione unificata
+                    };
+                    reader.readAsDataURL(file); // Legge il file immagine come Data URL
+                }
+            };
+
+            /**
+             * Gestisce le azioni della finestra di conferma (mantieni o azzera dati).
+             * @param {string} actionType - 'confirm_replace_image' o 'confirm_reset_full_slot'.
+             * @param {boolean} [shouldResetDataForImageReplace=false] - Solo per 'confirm_replace_image', true se i dati devono essere azzerati.
+             */
+            const handleConfirmAction = (actionType, shouldResetDataForImageReplace = false) => {
+                setIsConfirmModalOpen(false); // Chiudi la modale immediatamente
+
+                if (actionType === 'confirm_replace_image' && confirmAction && confirmAction.type === 'replace_image') {
+                    const imageUrl = confirmAction.imageUrl;
+                    if (shouldResetDataForImageReplace) {
+                        setBaseHp(0);
+                        setDamageTaken(0);
+                        setStatuses(Array(5).fill(false));
+                        setCurrentExp(0);
+                        setCardImage(imageUrl);
+                        setIsActivePokemon(false); // Azzera anche lo stato attivo
+                        updateParentCardData(0, 0, Array(5).fill(false), imageUrl, 0, false);
+                    } else {
+                        setCardImage(imageUrl);
+                        updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
+                    }
+                } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // Corrected from 'confirm_reset_full_slot'
+                    setCardImage(null);
+                    setBaseHp(0);
+                    setDamageTaken(0);
+                    setStatuses(Array(5).fill(false));
+                    setCurrentExp(0);
+                    setIsActivePokemon(false); // Resetta anche lo stato attivo
+                    onUpdateCard(slotIndex, null); // Passa null per rimuovere completamente la carta
+                }
+                setConfirmAction(null); // Resetta l'azione in sospeso
+            };
+
+
+            /**
+             * Gestisce la modifica manuale del valore HP Base.
+             * @param {Event} event - L'evento di cambiamento dell'input.
+             */
+            const handleBaseHpChange = (event) => {
+                const value = parseInt(event.target.value) || 0; // Converte in numero, default 0
+                setBaseHp(value);
+                updateParentCardData(value, damageTaken, statuses, cardImage, currentExp, isActivePokemon);
+            };
+
+            /**
+             * Gestisce la modifica del contatore Danni, a multipli di 10.
+             * @param {number} amount - La quantità (multiplo di 10) da aggiungere (o sottrarre) ai Danni.
+             */
+            const handleDamageChange = (amount) => {
+                setDamageTaken(prevDamage => {
+                    const newDamage = Math.max(0, prevDamage + amount); // I danni non possono essere negativi
+                    updateParentCardData(baseHp, newDamage, statuses, cardImage, currentExp, isActivePokemon); 
+                    return newDamage;
+                });
+            };
+
+            /**
+             * Gestisce la modifica del contatore EXP per la carta corrente.
+             * Assicura che l'esperienza rimanga tra 0 e 6.
+             * @param {number} amount - La quantità da aggiungere (o sottrarre) all'EXP.
+             */
+            const handleExpChange = (amount) => {
+                setCurrentExp(prevExp => {
+                    const newExp = Math.max(0, Math.min(6, prevExp + amount)); // Limite a 6
+                    updateParentCardData(baseHp, damageTaken, statuses, cardImage, newExp, isActivePokemon);
+                    return newExp;
+                });
+            };
+
+            /**
+             * Attiva/disattiva lo stato di un marker specifico.
+             * @param {number} index - L'indice del marker di stato (0-4).
+             */
+            const toggleStatus = (index) => {
+                // I toggle degli status sono permessi solo se il Pokémon è attivo
+                if (!isActivePokemon) return; 
+
+                setStatuses(prevStatuses => {
+                    const newStatuses = [...prevStatuses];
+                    newStatuses[index] = !newStatuses[index]; // Attiva/disattiva lo stato
+                    updateParentCardData(baseHp, damageTaken, newStatuses, cardImage, currentExp, isActivePokemon);
+                    return newStatuses;
+                });
+            };
+
+            /**
+             * Richiede la conferma per resettare completamente lo slot della carta.
+             */
+            const requestFullSlotReset = () => {
+                setConfirmAction({ type: 'reset_full_slot' });
+                setIsConfirmModalOpen(true);
+            };
+
+            /**
+             * Toggle lo stato di Pokémon attivo per questo slot.
+             * Chiama la funzione passata dal genitore per gestire la logica di unicità.
+             */
+            const handleToggleActivePokemon = () => {
+                // The actual logic for toggling and unique active is in App.js.
+                // We just need to ensure we don't try to toggle if App.js has disabled it for 'paralyzed' reasons.
+                onToggleActivePokemon(slotIndex); // Call parent function
+            };
+
+            // Aggiorna lo stato interno isActivePokemon quando la prop cambia
+            React.useEffect(() => {
+                setIsActivePokemon(cardData ? cardData.isActivePokemon : false);
+                // Quando la prop isActivePokemon diventa false (disattivata da un altro slot),
+                // resetta i local statuses per questa CardSlot.
+                if (cardData && !cardData.isActivePokemon && statuses.some(s => s)) {
+                    setStatuses(Array(5).fill(false));
+                    // Nota: Non chiamiamo updateParentCardData qui per evitare un loop infinito o stati non voluti.
+                    // La reset dei statuses dovrebbe essere gestita dal parent quando disattiva la carta.
+                }
+            }, [cardData ? cardData.isActivePokemon : undefined]); // Only depend on isActivePokemon part of cardData
+
+            // Determine if the star button (toggle active) should be disabled for this specific CardSlot
+            // This button should be disabled if:
+            // 1. It's not my turn.
+            // 2. An active card (potentially this one) is paralyzed, AND it's my turn.
+            const isStarButtonDisabled = !isMyTurn || (isMyTurn && activeCardParalyzed && !isActivePokemon) || (isMyTurn && isActivePokemon && cardData && cardData.statuses[3]);
+
+
+            // Array di classi Tailwind per i colori dei marker di stato
+            const statusColors = [
+                'bg-lime-500 hover:bg-lime-600',    /* 😴 Addormentato (Verde lime) */
+                'bg-rose-500 hover:bg-rose-600',    /* 🔥 Bruciato (Rosa/Rosso) */
+                'bg-sky-500 hover:bg-sky-600',      /* 😵 Confuso (Cielo Blu) */
+                'bg-yellow-500 hover:bg-yellow-600', /* 🛑 Paralizzato (Giallo) */
+                'bg-purple-500 hover:bg-purple-600' /* 💀 Avvelenato (Viola) - Colore originale */
+            ];
+
+            const currentHpValue = baseHp - damageTaken;
+
+            return (
+                <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'}`}>
+                    {/* Input file nascosto per il caricamento da file */}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        ref={fileInputRef}
+                        className="hidden" 
+                    />
+
+                    {/* Contenitore per HP Correnti e Indicatore Attivo */}
+                    <div className="flex items-center justify-between w-full mb-4">
+                        {/* HP Correnti spostati sopra l'immagine */}
+                        <div className="flex items-center space-x-2 text-2xl bg-gray-900 p-2 rounded-lg border-2 border-green-600 shadow-md flex-grow">
+                            <span className="counter-label text-green-300">HP:</span>
+                            <span className="counter-value text-green-500">{currentHpValue}</span>
+                        </div>
+                        {/* Icona Attivo */}
+                        <button
+                            onClick={handleToggleActivePokemon} // Use the new handler
+                            className={`ml-4 flex items-center justify-center w-12 h-12 rounded-full text-3xl shadow-md transition-all duration-200 ease-in-out border-2 ${isActivePokemon ? 'bg-yellow-400 border-yellow-600 text-gray-800' : 'bg-gray-600 border-gray-700 text-gray-300 hover:bg-gray-500'} ${isStarButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            title={isActivePokemon ? 'Pokémon Attivo' : 'Rendi Attivo'}
+                            disabled={isStarButtonDisabled}
+                        >
+                            ⭐
+                        </button>
+                    </div>
+
+
+                    {/* Banner ESAUSTO - Ora appare solo se c'è un'immagine E HP <= 0 */}
+                    {currentHpValue <= 0 && cardImage && (
+                        <div className="absolute top-36 w-48 bg-red-700 text-white text-center font-extrabold text-2xl py-2 rounded-lg border-2 border-red-400 z-10 animate-pulse shadow-lg">
+                            ESAUSTO
+                        </div>
+                    )}
+
+                    {cardImage ? (
+                        // Visualizza l'immagine della carta se disponibile
+                        <img
+                            src={cardImage}
+                            alt={"Carta " + (slotIndex + 1)}
+                            className="w-48 h-64 object-cover rounded-lg border-2 border-gray-600 mb-6 bg-gray-900 shadow-inner"
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/192x256/444/bbb?text=Errore+Immagine"; }}
+                        />
+                    ) : (
+                        // Placeholder per richiedere il caricamento dell'immagine (verticale)
+                        <div
+                            className="w-48 h-64 bg-gray-900 flex justify-center items-center text-gray-400 text-xl cursor-pointer rounded-lg border-4 border-dashed border-gray-600 mb-6 hover:bg-gray-800 transition-colors duration-300 shadow-inner"
+                            onClick={() => setShowCameraModal(true)} 
+                        >
+                            <span className="text-center font-bold">Aggiungi Carta</span>
+                        </div>
+                    )}
+
+                    {/* Mostra i controlli se è presente un'immagine O se lo slot ha dati persistenti */}
+                    {(cardData || cardImage) && (
+                        <>
+                            {/* Pulsanti per caricare immagine - ora icone */}
+                            <div className="flex space-x-4 mb-6 w-full justify-center">
+                                <button
+                                    onClick={() => fileInputRef.current.click()}
+                                    className="icon-btn btn-blue"
+                                    title="Carica da File"
+                                >
+                                    📁
+                                </button>
+                                <button
+                                    onClick={() => setShowCameraModal(true)}
+                                    className="icon-btn btn-purple"
+                                    title="Carica da Fotocamera"
+                                >
+                                    📸
+                                </button>
+                            </div>
+
+                            {/* Input HP Manuale (senza freccette) */}
+                            <div className="flex items-center space-x-4 mb-4 text-xl w-full justify-center">
+                                <span className="counter-label text-red-300">HP Base:</span>
+                                <input
+                                    type="number"
+                                    value={baseHp}
+                                    onChange={handleBaseHpChange}
+                                    className="w-24 px-3 py-2 bg-gray-900 border-2 border-red-500 rounded-lg text-center text-red-200 font-extrabold shadow-inner focus:outline-none focus:ring-2 focus:ring-red-400 no-spinner"
+                                    min="0"
+                                />
+                            </div>
+
+                            {/* Contatore Danni */}
+                            <div className="flex items-center space-x-4 mb-4 text-xl w-full justify-center">
+                                <span className="counter-label text-orange-300">Danni:</span>
+                                <button
+                                    onClick={() => handleDamageChange(-10)}
+                                    className="btn-theme btn-yellow px-4 py-2 text-xl"
+                                >
+                                    -10
+                                </button>
+                                <span className="counter-value text-red-500">{damageTaken}</span>
+                                <button
+                                    onClick={() => handleDamageChange(10)}
+                                    className="btn-theme btn-orange px-4 py-2 text-xl"
+                                >
+                                    +10
+                                </button>
+                            </div>
+
+                            {/* Contatore Esperienza a pallini */}
+                            <div className="flex items-center space-x-4 mb-6 text-xl w-full justify-center">
+                                <span className="counter-label text-purple-300">EXP:</span>
+                                <button
+                                    onClick={() => handleExpChange(-1)}
+                                    className="btn-theme btn-red px-4 py-2 text-xl"
+                                >
+                                    -
+                                </button>
+                                <div className="flex space-x-1 px-2"> {/* Contenitore per i pallini */}
+                                    {[...Array(6)].map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className={`exp-dot ${i < currentExp ? (i < 3 ? 'active-yellow' : 'active-blue') : ''}`}
+                                        ></div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => handleExpChange(1)}
+                                    className="btn-theme btn-green px-4 py-2 text-xl"
+                                >
+                                    +
+                                </button>
+                            </div>
+
+                            {/* Marker di Stato */}
+                            <div className="flex space-x-3 mb-6">
+                                {statuses.map((isActive, index) => {
+                                    // Le classi cambiano se lo slot NON è attivo
+                                    const classes = [
+                                        "w-10", "h-10", "rounded-full", "flex", "justify-center", "items-center",
+                                        "text-base", "font-bold", "transition-all", "duration-200",
+                                        "ease-in-out", "transform", "border-2", "border-gray-600", "shadow-md"
+                                    ];
+
+                                    if (isActive) {
+                                        classes.push(statusColors[index]);
+                                        classes.push('scale-110', 'ring-2', 'ring-offset-2', 'ring-offset-gray-800', 'ring-opacity-75');
+                                    } else {
+                                        // Se non attivo, grigio e cursore non permesso, opacità ridotta
+                                        classes.push('bg-gray-600', 'text-gray-300');
+                                    }
+
+                                    // Aggiungi cursor-pointer solo se attivo, altrimenti cursor-not-allowed
+                                    if (isActivePokemon) {
+                                        classes.push('cursor-pointer', 'hover:bg-gray-500');
+                                    } else {
+                                        classes.push('cursor-not-allowed', 'opacity-50');
+                                    }
+
+
+                                    let statusSymbol;
+                                    let statusTitle;
+                                    switch(index) {
+                                        case 0:
+                                            statusSymbol = '😴';
+                                            statusTitle = 'Addormentato';
+                                            break;
+                                        case 1:
+                                            statusSymbol = '🔥';
+                                            statusTitle = 'Bruciato';
+                                            break;
+                                        case 2:
+                                            statusSymbol = '😵';
+                                            statusTitle = 'Confuso';
+                                            break;
+                                        case 3:
+                                            statusSymbol = '🛑';
+                                            statusTitle = 'Paralizzato';
+                                            break;
+                                        case 4:
+                                            statusSymbol = '💀'; /* Cambiato da '🟣' a '💀' */
+                                            statusTitle = 'Avvelenato';
+                                            break;
+                                        default:
+                                            statusSymbol = '';
+                                            statusTitle = '';
+                                    }
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={classes.join(' ')} 
+                                            onClick={() => toggleStatus(index)}
+                                            title={statusTitle}
+                                        >
+                                            {statusSymbol}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Pulsante Resetta Tutto lo Slot con icona */}
+                            <div className="flex justify-center w-full mt-2 max-w-xs">
+                                <button
+                                    onClick={requestFullSlotReset} 
+                                    className="icon-btn btn-red"
+                                    title="Resetta Tutto lo Slot"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Finestra di conferma generica (per replace image o reset slot) */}
+                    {isConfirmModalOpen && (
+                        <div className="absolute inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-20 rounded-lg p-6">
+                            {confirmAction && confirmAction.type === 'replace_image' && (
+                                <p className="text-white text-center mb-6 text-xl font-bold">
+                                    Vuoi mantenere i dati della carta precedente o azzerarli?
+                                </p>
+                            )}
+                            {confirmAction && confirmAction.type === 'reset_full_slot' && (
+                                <p className="text-white text-center mb-6 text-xl font-bold">
+                                    Sei sicuro di voler resettare tutti i dati di questo slot?
+                                    Questa azione è irreversibile.
+                                </p>
+                            )}
+                            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 w-full justify-center">
+                                {confirmAction && confirmAction.type === 'replace_image' && (
+                                    <button
+                                        onClick={() => handleConfirmAction('confirm_replace_image', false)} // Mantieni Dati
+                                        className="btn-theme btn-green text-base md:text-lg"
+                                    >
+                                        Mantieni Dati
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => handleConfirmAction('confirm_replace_image', true)} // Azzera Dati
+                                    className="btn-theme btn-red text-base md:text-lg"
+                                >
+                                    {confirmAction && confirmAction.type === 'replace_image' ? 'Azzera Dati' : 'Sì, Resetta'}
+                                </button>
+                                {confirmAction && confirmAction.type === 'reset_full_slot' && (
+                                    <button
+                                        onClick={() => setIsConfirmModalOpen(false)} // Annulla il reset completo
+                                        className="btn-theme btn-gray text-base md:text-lg"
+                                    >
+                                        No, Annulla
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Modale della fotocamera */}
+                    <CameraModal
+                        isOpen={showCameraModal}
+                        onClose={() => setShowCameraModal(false)}
+                        onCapture={handleNewImageSelection} 
+                    />
+                </div>
+            );
+        }
+
+        // Componente per visualizzare e gestire le medaglie
+        function MedalDisplay({ medals, onToggleMedal }) {
+            // Emojis che rappresentano le 8 medaglie dall'immagine fornita
+            const medalSymbols = ['⚫', '💧', '⚡', '🌈', '❤️', '🟠', '🌋', '🌿']; 
+            const medalTitles = [
+                'Medaglia Roccia', 'Medaglia Cascata', 'Medaglia Saetta', 'Medaglia Arcobaleno', 
+                'Medaglia Anima', 'Medaglia Terra', 'Medaglia Vulcano', 'Medaglia Foglia'
+            ];
+
+            return (
+                <div className="flex flex-wrap justify-center space-x-2 space-y-2 p-3 bg-gray-800 rounded-full shadow-lg border-2 border-yellow-400">
+                    {medals.map((isActive, index) => {
+                        const classes = [
+                            "medal-icon",
+                            isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                        ];
+                        return (
+                            <div
+                                key={index}
+                                className={classes.join(' ')}
+                                onClick={() => onToggleMedal(index)}
+                                title={medalTitles[index]}
+                            >
+                                {medalSymbols[index]}
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // Componente per il lancio dei dadi (ora più generico)
+        function DiceRoller({ title, isAttackRoller, isDiceRollDisabled, onConfusedRollAttempt, isMyTurn, onDiceRollComplete, results, onSetResults, onDisplayResultsForBanner }) { 
+            const [numberOfDice, setNumberOfDice] = React.useState(1);
+            const [criticalHit, setCriticalHit] = React.useState(false); // Solo per isAttackRoller
+            const [attackFailed, setAttackFailed] = React.useState(false); // Solo per isAttackRoller
+
+            // Mapping dei numeri ai simboli dei dadi (emoji)
+            // const diceFaces = { ... }; moved globally
+
+            const handleRoll = async () => {
+                // Reset banners for Attack Roller
+                if (isAttackRoller) {
+                    setCriticalHit(false);
+                    setAttackFailed(false);
+                }
+                onSetResults([]); // Clear previous results immediately via parent prop
+
+                // Logic specific to Attack Roller
+                if (isAttackRoller) {
+                    // If paralyzed, prevent roll
+                    if (isDiceRollDisabled === 'paralyzed') {
+                        console.log("Lancio dadi bloccato: Pokémon Paralizzato.");
+                        return; 
+                    }
+
+                    // If confused, perform coin flip first
+                    if (isDiceRollDisabled === 'confused') { 
+                        const shouldProceed = await onConfusedRollAttempt(); 
+                        if (!shouldProceed) {
+                            onDiceRollComplete(); // End turn even if attack failed due to confusion
+                            return;
+                        }
+                    }
+                }
+
+                const newResults = [];
+                let foursCount = 0;
+                let onesCount = 0;
+
+                for (let i = 0; i < numberOfDice; i++) {
+                    const roll = Math.floor(Math.random() * 6) + 1; // Dado a 6 facce
+                    newResults.push(roll);
+                    if (roll === 4) {
+                        foursCount++;
+                    }
+                    if (roll === 1) {
+                        onesCount++;
+                    }
+                }
+                onSetResults(newResults); // Update results via parent prop
+                onDisplayResultsForBanner(newResults); // Display results on the big banner
+
+                // Determine banners only for Attack Roller
+                if (isAttackRoller) {
+                    if (foursCount >= 2) {
+                        setCriticalHit(true);
+                        setAttackFailed(false); // Prioritizza Critical Hit
+                    } else if (onesCount >= 1) {
+                        setAttackFailed(true);
+                        setCriticalHit(false);
+                    } else {
+                        setCriticalHit(false);
+                        setAttackFailed(false);
+                    }
+                    onDiceRollComplete(); // End turn after a successful dice roll for Attack Roller
+                }
+            };
+
+            // Determine if the roll button should be disabled for this specific DiceRoller instance
+            let isDisabled = false;
+            if (isAttackRoller) {
+                isDisabled = isDiceRollDisabled === 'asleep' || isDiceRollDisabled === 'paralyzed' || !isMyTurn;
+            }
+            // For Retreat, it's always enabled unless specific rules are added later
+
+            return (
+                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 min-w-[180px]"> {/* flex-1 and min-w to make them share space */}
+                    <div className="flex flex-row items-center justify-center gap-4 w-full"> 
+                        <h2 className="text-lg font-bold text-yellow-300 whitespace-nowrap">{title}</h2>
+                        
+                        <div className="flex items-center space-x-2">
+                            <label htmlFor={`num-dice-${title}`} className="counter-label text-white text-sm">N°:</label>
+                            <select
+                                id={`num-dice-${title}`}
+                                value={numberOfDice}
+                                onChange={(e) => setNumberOfDice(parseInt(e.target.value))}
+                                className="bg-gray-700 text-white rounded-md p-1 text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            >
+                                {[1, 2, 3, 4, 5, 6].map(num => (
+                                    <option key={num} value={num}>{num}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <button
+                            onClick={handleRoll}
+                            className="btn-theme btn-green text-base px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={isDisabled} 
+                        >
+                            Lancia
+                        </button>
+                    </div>
+
+                    {results.length > 0 && ( 
+                        <div className="flex flex-wrap justify-center gap-2 text-3xl font-extrabold text-white mt-2"> 
+                            {results.map((result, index) => (
+                                <span key={index} className="bg-gray-900 p-2 rounded-md border-2 border-yellow-500 shadow-md flex-shrink-0">
+                                    {diceFaces[result]} 
+                                </span>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Banners only for Attack Roller */}
+                    {isAttackRoller && criticalHit && (
+                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse">
+                            ATTACCO CRITICO!
+                        </div>
+                    )}
+                    {isAttackRoller && attackFailed && (
+                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse">
+                            ATTACCO FALLITO!
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Componente per il lancio del dado di Movimento
+        function MovementDiceRoller({ onRoll }) {
+            return (
+                <button
+                    onClick={onRoll}
+                    className="btn-theme btn-gray px-4 py-2 text-base flex flex-col items-center justify-center"
+                    title="Lancia Dado Movimento"
+                >
+                    <span className="text-xl">🎲</span>
+                    <span className="text-xs mt-1">Movimento</span>
+                </button>
+            );
+        }
+
+        // Componente per l'indicatore di turno
+        function TurnIndicator({ isMyTurn, onToggleTurn }) {
+            const icon = isMyTurn ? '🏁' : '🚩'; // Bandiera a scacchi per il proprio turno, bandiera rossa per l'altro
+            const title = isMyTurn ? 'Il tuo turno' : 'Turno avversario';
+            const bgColor = isMyTurn ? 'bg-green-500' : 'bg-red-500';
+            const borderColor = isMyTurn ? 'border-green-700' : 'border-red-700';
+
+            return (
+                <button
+                    onClick={onToggleTurn}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md transition-all duration-200 ease-in-out border-4 ${bgColor} ${borderColor} hover:scale-105 active:scale-95`}
+                    title={title}
+                >
+                    {icon}
+                </button>
+            );
+        }
+
+
+        // App component - Contenitore principale per l'interfaccia di gioco
+        function App() {
+            // Inizializza lo stato delle carte da localStorage o un array vuoto di 6 slot
+            const [cards, setCards] = React.useState(() => {
+                const savedCards = localStorage.getItem('gameCards');
+                // Ensure isActivePokemon is properly initialized for existing cards
+                const initialCards = savedCards ? JSON.parse(savedCards) : Array(6).fill(null);
+                // Ensure statuses array has 5 elements initialized and isActivePokemon is set
+                return initialCards.map(card => card ? { 
+                    ...card, 
+                    isActivePokemon: card.isActivePokemon || false,
+                    statuses: card.statuses && card.statuses.length === 5 ? card.statuses : Array(5).fill(false) // Ensure statuses is 5-element array
+                } : null);
+            });
+
+            // Stato per il contatore di valuta globale
+            const [globalCurrency, setGlobalCurrency] = React.useState(() => {
+                const savedCurrency = localStorage.getItem('globalCurrency');
+                return savedCurrency ? parseInt(savedCurrency) : 0;
+            });
+
+            // Stato per le medaglie globali
+            const [medals, setMedals] = React.useState(() => {
+                const savedMedals = localStorage.getItem('gameMedals');
+                // Inizializza con 8 elementi, tutti a false di default
+                return savedMedals ? JSON.parse(savedMedals) : Array(8).fill(false); 
+            });
+
+            // Stato per l'indicatore di turno
+            const [isMyTurn, setIsMyTurn] = React.useState(() => {
+                const savedTurnState = localStorage.getItem('isMyTurn');
+                return savedTurnState ? JSON.parse(savedTurnState) : false; // Default: non è il tuo turno
+            });
+
+            // Stato per il banner della moneta (sia per addormentato che per confuso)
+            const [showCoinFlipBanner, setShowCoinFlipBanner] = React.useState(false);
+            const [coinFlipResult, setCoinFlipResult] = React.useState('');
+            const [coinFlipType, setCoinFlipType] = React.useState(''); // 'turn' or 'confusion'
+
+            // Nuovo stato per i risultati dei dadi lanciati per ATTACCA
+            const [attackDiceResults, setAttackDiceResults] = React.useState([]);
+            // Nuovo stato per i risultati dei dadi lanciati per RITIRATA
+            const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
+
+            // Stato per il dado di movimento
+            const [movementDiceResult, setMovementDiceResult] = React.useState(null);
+            const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
+
+            // Stato per il banner grande dei dadi (Attacca/Ritirata)
+            const [showGlobalDiceBanner, setShowGlobalDiceBanner] = React.useState(false);
+            const [globalDiceBannerResults, setGlobalDiceBannerResults] = React.useState([]);
+
+
+            // Effetto per salvare le carte in localStorage ogni volta che cambiano
+            React.useEffect(() => {
+                localStorage.setItem('gameCards', JSON.stringify(cards));
+            }, [cards]);
+
+            // Effetto per salvare la valuta globale in localStorage ogni volta che cambia
+            React.useEffect(() => {
+                localStorage.setItem('globalCurrency', globalCurrency.toString());
+            }, [globalCurrency]);
+
+            // Effetto per salvare le medaglie in localStorage ogni volta che cambiano
+            React.useEffect(() => {
+                localStorage.setItem('gameMedals', JSON.stringify(medals));
+            }, [medals]);
+
+            // Effetto per salvare lo stato del turno in localStorage
+            React.useEffect(() => {
+                localStorage.setItem('isMyTurn', JSON.stringify(isMyTurn));
+            }, [isMyTurn]);
+
+
+            /**
+             * Aggiorna i dati della carta in uno slot specifico.
+             * @param {number} index - L'indice dello slot della carta (0-5).
+             * @param {object | null} cardData - I nuovi dati della carta o null per pulire lo slot.
+             */
+            const updateCardInSlot = React.useCallback((index, cardData) => {
+                setCards(prevCards => {
+                    const newCards = [...prevCards];
+                    newCards[index] = cardData;
+                    return newCards;
+                });
+            }, []); // No dependencies, as it sets state based on previous state
+
+            /**
+             * Gestisce il toggle dello stato "attivo" per un Pokémon.
+             * Assicura che solo un Pokémon sia attivo alla volta.
+             * @param {number} clickedSlotIndex - L'indice dello slot cliccato.
+             */
+            const handleActivePokemonToggle = React.useCallback((clickedSlotIndex) => {
+                // Determine the currently active card for status checks BEFORE state update
+                const currentActiveCard = cards.find(card => card && card.isActivePokemon);
+                
+                // If there's an active card and it's Paralized and it's My Turn, prevent switching
+                if (isMyTurn && currentActiveCard && currentActiveCard.statuses[3]) { // statuses[3] is Paralizzato
+                    console.log("Cannot change active Pokémon while current active is Paralizzato on your turn.");
+                    return; // Block the action
+                }
+
+                setCards(prevCards => {
+                    return prevCards.map((card, idx) => {
+                        if (!card) return null; // Skip if slot is empty
+
+                        const isClickedCard = (idx === clickedSlotIndex);
+                        let newIsActive = card.isActivePokemon;
+                        let newStatuses = [...card.statuses];
+
+                        if (isClickedCard) {
+                            newIsActive = !card.isActivePokemon; // Toggle the clicked card
+                            // If the clicked card is becoming INACTIVE, reset its statuses
+                            if (!newIsActive) {
+                                newStatuses = Array(5).fill(false);
+                            }
+                        } else if (card.isActivePokemon) {
+                            // If another card was active, deactivate it and reset its statuses
+                            newIsActive = false;
+                            newStatuses = Array(5).fill(false);
+                        }
+
+                        return {
+                            ...card,
+                            isActivePokemon: newIsActive,
+                            statuses: newStatuses
+                        };
+                    });
+                });
+            }, [isMyTurn, cards]); // Added cards to dependencies for activeCard check
+
+
+            // Gestisce il cambiamento manuale dell'input della valuta globale
+            const handleGlobalCurrencyChange = (event) => {
+                const value = parseInt(event.target.value) || 0;
+                setGlobalCurrency(value);
+            };
+
+            // Gestisce l'incremento/decremento della valuta globale
+            const adjustGlobalCurrency = (amount) => {
+                setGlobalCurrency(prevCurrency => Math.max(0, prevCurrency + amount));
+            };
+
+            // Toggle lo stato di una medaglia
+            const toggleMedal = (index) => {
+                setMedals(prevMedals => {
+                    const newMedals = [...prevMedals];
+                    newMedals[index] = !newMedals[index];
+                    return newMedals;
+                });
+            };
+
+            // Determina se il lancio dei dadi deve essere disabilitato (se il Pokémon attivo è addormentato o paralizzato)
+            const activeCardForDice = cards.find(card => card && card.isActivePokemon); // Use a new const to avoid confusion with activeCard in toggleMyTurn
+            const getDiceRollDisableStatus = () => {
+                if (!activeCardForDice) return false;
+                if (activeCardForDice.statuses[0]) return 'asleep'; // Addormentato
+                if (activeCardForDice.statuses[2]) return 'confused'; // Confuso
+                if (activeCardForDice.statuses[3]) return 'paralyzed'; // Paralizzato - NEW
+                return false;
+            };
+            const diceRollDisableStatus = getDiceRollDisableStatus();
+
+            // Funzione per gestire il lancio della moneta per lo stato "Confuso"
+            const handleConfusedRollAttempt = React.useCallback(async () => {
+                // Perform coin flip
+                const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
+                setCoinFlipResult(result);
+                setCoinFlipType('confusion'); // Indicate it's a confusion flip
+                setShowCoinFlipBanner(true);
+
+                // Hide banner after 3 seconds
+                setTimeout(() => {
+                    setShowCoinFlipBanner(false);
+                    setCoinFlipType('');
+                }, 3000);
+
+                if (result === 'Croce') {
+                    // Inflict 30 damage if Croce
+                    setCards(prevCards => {
+                        return prevCards.map((card, idx) => {
+                            if (card && card.isActivePokemon) {
+                                const newDamageTaken = card.damageTaken + 30;
+                                return { ...card, damageTaken: newDamageTaken };
+                            }
+                            return card;
+                        });
+                    });
+                    return false; // Do not proceed with dice roll
+                }
+                return true; // Proceed with dice roll
+            }, [activeCardForDice, cards]); // Dependencies: activeCardForDice, cards for setCards
+
+
+            // Toggle lo stato del turno E gestisce le condizioni di stato
+            const toggleMyTurn = React.useCallback(() => { // Made useCallback
+                setIsMyTurn(prevIsMyTurn => {
+                    const newTurnState = !prevIsMyTurn;
+                    const currentActiveCardInTurn = cards.find(card => card && card.isActivePokemon); // Get active card at the moment of turn toggle
+
+                    // Logica per lo stato "Paralizzato" quando il turno passa all'avversario - NEW
+                    if (!newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[3]) { // Se diventa il turno dell'avversario E il Pokémon attivo è Paralizzato
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { // Ensure we modify the *correct* active card
+                                    const newStatuses = [...card.statuses];
+                                    newStatuses[3] = false; // Deseleziona Paralizzato
+                                    return { ...card, statuses: newStatuses };
+                                }
+                                return card;
+                            });
+                        });
+                    }
+
+                    // Logica del lancio della moneta per stato "Addormentato"
+                    // La moneta viene lanciata solo se c'è un Pokémon attivo E se è Addormentato
+                    if (currentActiveCardInTurn && currentActiveCardInTurn.statuses[0]) { 
+                        const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
+                        setCoinFlipResult(result);
+                        setCoinFlipType('turn'); // Indicate it's a turn flip
+                        setShowCoinFlipBanner(true);
+
+                        // Nasconde il banner dopo 3 secondi
+                        setTimeout(() => {
+                            setShowCoinFlipBanner(false);
+                            setCoinFlipType('');
+                        }, 3000);
+
+                        // Applica l'effetto del lancio della moneta sul Pokémon attivo "Addormentato"
+                        if (result === 'Testa') {
+                            setCards(prevCards => {
+                                return prevCards.map((card, idx) => {
+                                    if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { // Trova il Pokémon attivo
+                                        const newStatuses = [...card.statuses];
+                                        newStatuses[0] = false; // Deseleziona Addormentato (si sveglia)
+                                        return { ...card, statuses: newStatuses };
+                                    }
+                                    return card;
+                                });
+                            });
+                        }
+                        // Se esce 'Croce', il Pokémon Addormentato rimane Addormentato, quindi non facciamo nulla qui.
+                    } else {
+                        // Se non c'è un Pokémon attivo addormentato, assicurati che il banner della moneta sia nascosto
+                        setShowCoinFlipBanner(false);
+                        setCoinFlipType('');
+                    }
+
+                    // Logica del danno da bruciatura (solo quando diventa il tuo turno)
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[1]) { // Se diventa il tuo turno E il Pokémon attivo è Bruciato (index 1)
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
+                                    const newDamageTaken = card.damageTaken + 20;
+                                    return { ...card, damageTaken: newDamageTaken };
+                                }
+                                return card;
+                            });
+                        });
+                    }
+
+                    // Logica del danno da avvelenamento (solo quando diventa il tuo turno)
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[4]) { // Se diventa il tuo turno E il Pokémon attivo è Avvelenato (index 4)
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
+                                    const newDamageTaken = card.damageTaken + 10; // 10 danni per avvelenamento
+                                    return { ...card, damageTaken: newDamageTaken };
+                                }
+                                return card;
+                            });
+                        });
+                    }
+
+                    // Clear dice roll results when it becomes MY turn
+                    if (newTurnState) { // If it's becoming MY turn
+                        setAttackDiceResults([]); // Clear results for Attack dice
+                        // Not clearing retreatDiceResults here, as per previous instruction to keep them visible during opponent's turn.
+                    } else { // If it's becoming OPPONENT's turn, clear retreat dice
+                        setRetreatDiceResults([]);
+                    }
+
+                    return newTurnState;
+                });
+            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults]); // Added setAttackDiceResults, setRetreatDiceResults to dependencies
+
+            // Funzione per gestire il lancio del dado di movimento
+            const handleRollMovementDice = React.useCallback(() => {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                setMovementDiceResult(roll);
+                setShowMovementDiceBanner(true);
+
+                setTimeout(() => {
+                    setShowMovementDiceBanner(false);
+                    setMovementDiceResult(null);
+                }, 5000); // 5 seconds
+            }, []);
+
+            // Funzione per gestire la visualizzazione del banner grande dei dadi (Attacca/Ritirata)
+            const handleDisplayDiceBanner = React.useCallback((results) => {
+                setGlobalDiceBannerResults(results);
+                setShowGlobalDiceBanner(true);
+                setTimeout(() => {
+                    setShowGlobalDiceBanner(false);
+                    setGlobalDiceBannerResults([]);
+                }, 3000); // Banner visibile per 3 secondi
+            }, []);
+
+
+            return (
+                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4 relative">
+                    {/* Top Bar: Indicatore Turno, Lancia Dadi, Valuta Globale, Dado Movimento */}
+                    <div className="w-full flex justify-between items-center p-4 bg-gray-800 rounded-full shadow-lg border-4 border-yellow-400 z-10 relative">
+                        {/* Indicatore di Turno in alto a sinistra */}
+                        <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
+
+                        {/* Contenitore per i due lancia dadi (Attacca e Ritirata) al centro */}
+                        <div className="flex flex-row justify-center items-stretch gap-4 flex-grow px-2"> 
+                            {/* Lancia Dadi ATTACCA */}
+                            <DiceRoller 
+                                title="ATTACCA"
+                                isAttackRoller={true} // This instance is the attack roller
+                                isDiceRollDisabled={diceRollDisableStatus}
+                                onConfusedRollAttempt={handleConfusedRollAttempt}
+                                isMyTurn={isMyTurn}
+                                onDiceRollComplete={toggleMyTurn} // Only attack roll ends the turn
+                                results={attackDiceResults} // Use attackDiceResults state
+                                onSetResults={setAttackDiceResults} // Use setter for attackDiceResults
+                                onDisplayResultsForBanner={handleDisplayDiceBanner} // Pass the banner display callback
+                            /> 
+                            {/* Lancia Dadi RITIRATA */}
+                            <DiceRoller 
+                                title="RITIRATA"
+                                isAttackRoller={false} // This instance is NOT the attack roller
+                                results={retreatDiceResults} // Use retreatDiceResults state
+                                onSetResults={setRetreatDiceResults} // Use setter for retreatDiceResults
+                                onDisplayResultsForBanner={handleDisplayDiceBanner} // Pass the banner display callback
+                                // No onDiceRollComplete, no specific disabling, no confusion check for retreat
+                            /> 
+                        </div>
+
+                        {/* Contenitore per Valuta Globale e Dado Movimento in alto a destra */}
+                        <div className="flex items-center space-x-4">
+                            {/* Nuovo DiceRoller per Movimento */}
+                            <MovementDiceRoller onRoll={handleRollMovementDice} />
+                            {/* Contatore di Valuta Globale */}
+                            <div className="bg-yellow-400 p-1 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700"> {/* Reduced p-2 to p-1 */}
+                                <span className="text-xl font-extrabold text-gray-800 mr-0.5">$</span> {/* Reduced text-3xl to text-xl, mr-1 to mr-0.5 */}
+                                <button
+                                    onClick={() => adjustGlobalCurrency(-1)}
+                                    className="btn-theme btn-red px-2 py-0.5 text-base" /* Reduced px-3 py-1 to px-2 py-0.5, text-xl to text-base */
+                                >
+                                    -
+                                </button>
+                                <input
+                                    type="number"
+                                    value={globalCurrency}
+                                    onChange={handleGlobalCurrencyChange}
+                                    className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-0.5 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner" /* Reduced w-24 to w-16, px-2 py-1 to px-1 py-0.5, text-xl to text-base, mx-1 to mx-0.5 */
+                                    min="0"
+                                />
+                                <button
+                                    onClick={() => adjustGlobalCurrency(1)}
+                                    className="btn-theme btn-green px-2 py-0.5 text-base" /* Reduced px-3 py-1 to px-2 py-0.5, text-xl to text-base */
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Banner del lancio della moneta (per turno o confusione) */}
+                        {showCoinFlipBanner && (
+                            <div className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
+                                {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Banner grande per il dado di Movimento */}
+                    {showMovementDiceBanner && movementDiceResult && (
+                        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                            <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
+                                {diceFaces[movementDiceResult]}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Banner grande per i dadi di ATTACCA/RITIRATA */}
+                    {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
+                        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                            <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
+                                {globalDiceBannerResults.map((result, index) => (
+                                    <span key={index}>{diceFaces[result]}</span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contenitore per gli slot delle carte */}
+                    {/* Impostato su 1 colonna per schermi piccoli, espandibile per schermi più grandi */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-md sm:max-w-3xl lg:max-w-6xl mt-8 pb-8"> 
+                        {cards.map((cardData, index) => (
+                            <CardSlot
+                                key={index} 
+                                slotIndex={index}
+                                cardData={cardData} 
+                                onUpdateCard={updateCardInSlot}
+                                onToggleActivePokemon={handleActivePokemonToggle} // Pass the new handler
+                                isMyTurn={isMyTurn} // Pass isMyTurn to CardSlot
+                                activeCardParalyzed={isMyTurn && activeCardForDice && activeCardForDice.statuses[3]} // Pass if an active card is paralyzed and it's my turn
+                            />
+                        ))}
+                    </div>
+
+                    {/* Contenitore per le Medaglie in fondo alla pagina */}
+                    <div className="w-full flex justify-center mt-8 pb-4">
+                        <MedalDisplay medals={medals} onToggleMedal={toggleMedal} />
+                    </div>
+                </div>
+            );
+        }
+
+        // Renderizza il componente App di React nell'elemento 'root'
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
 </html>
