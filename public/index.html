@@ -124,7 +124,7 @@
             text-shadow: 2px 2px 3px rgba(0,0,0,0.5);
         }
 
-        /* Stile per i pulsanti icona */
+        /* Stili per i pulsanti icona */
         .icon-btn {
             @apply flex items-center justify-center w-12 h-12 rounded-full text-2xl shadow-md transition-all duration-200 ease-in-out border-2;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
@@ -589,7 +589,7 @@
 
             /**
              * Gestisce le azioni della finestra di conferma (mantieni o azzera dati).
-             * @param {string} actionType - 'confirm_replace_image' o 'confirm_reset_full_slot'.
+             * @param {string} actionType - 'confirm_replace_image' o 'reset_full_slot'.
              * @param {boolean} [shouldResetDataForImageReplace=false] - Solo per 'confirm_replace_image', true se i dati devono essere azzerati.
              */
             const handleConfirmAction = (actionType, shouldResetDataForImageReplace = false) => {
@@ -609,7 +609,7 @@
                         setCardImage(imageUrl);
                         updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
                     }
-                } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // Corrected from 'confirm_reset_full_slot'
+                } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // This condition is correct
                     setCardImage(null);
                     setBaseHp(0);
                     setDamageTaken(0);
@@ -956,7 +956,7 @@
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => handleConfirmAction('confirm_replace_image', true)} // Azzera Dati
+                                    onClick={() => handleConfirmAction(confirmAction.type === 'replace_image' ? 'confirm_replace_image' : 'reset_full_slot', true)} /* Corrected call: pass correct actionType based on confirmAction.type */
                                     className="btn-theme btn-red text-base md:text-lg"
                                 >
                                     {confirmAction && confirmAction.type === 'replace_image' ? 'Azzera Dati' : 'Sì, Resetta'}
@@ -993,7 +993,7 @@
             ];
 
             return (
-                <div className="flex flex-wrap justify-center space-x-2 space-y-2 p-3 bg-gray-800 rounded-full shadow-lg border-2 border-yellow-400">
+                <div className="flex flex-wrap justify-center space-x-2 space-y-2 p-3 bg-gray-800 rounded-full shadow-lg border-2 border-yellow-400 max-w-sm"> {/* Aggiunto max-w-sm */}
                     {medals.map((isActive, index) => {
                         const classes = [
                             "medal-icon",
@@ -1090,8 +1090,8 @@
             // For Retreat, it's always enabled unless specific rules are added later
 
             return (
-                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 min-w-[180px]"> {/* flex-1 and min-w to make them share space */}
-                    <div className="flex flex-row items-center justify-center gap-4 w-full"> 
+                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4"> {/* flex-1 and min-w to make them share space */}
+                    <div className="flex flex-col items-center justify-center gap-2 w-full"> {/* Changed to flex-col */}
                         <h2 className="text-lg font-bold text-yellow-300 whitespace-nowrap">{title}</h2>
                         
                         <div className="flex items-center space-x-2">
@@ -1110,7 +1110,7 @@
 
                         <button
                             onClick={handleRoll}
-                            className="btn-theme btn-green text-base px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-theme btn-green text-base px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed w-full" /* Added w-full */
                             disabled={isDisabled} 
                         >
                             Lancia
@@ -1129,12 +1129,12 @@
 
                     {/* Banners only for Attack Roller */}
                     {isAttackRoller && criticalHit && (
-                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse">
+                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse text-center w-full">
                             ATTACCO CRITICO!
                         </div>
                     )}
                     {isAttackRoller && attackFailed && (
-                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse">
+                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
                             ATTACCO FALLITO!
                         </div>
                     )}
@@ -1147,7 +1147,7 @@
             return (
                 <button
                     onClick={onRoll}
-                    className="btn-theme btn-gray px-4 py-2 text-base flex flex-col items-center justify-center"
+                    className="btn-theme btn-gray px-4 py-2 text-base flex flex-col items-center justify-center w-full max-w-xs mb-4" /* Added w-full max-w-xs mb-4 */
                     title="Lancia Dado Movimento"
                 >
                     <span className="text-xl">🎲</span>
@@ -1166,7 +1166,7 @@
             return (
                 <button
                     onClick={onToggleTurn}
-                    className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md transition-all duration-200 ease-in-out border-4 ${bgColor} ${borderColor} hover:scale-105 active:scale-95`}
+                    className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md transition-all duration-200 ease-in-out border-4 ${bgColor} ${borderColor} hover:scale-105 active:scale-95 mb-4`} /* Added mb-4 */
                     title={title}
                 >
                     {icon}
@@ -1486,68 +1486,65 @@
 
             return (
                 <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4 relative">
-                    {/* Top Bar: Indicatore Turno, Lancia Dadi, Valuta Globale, Dado Movimento */}
-                    <div className="w-full flex justify-between items-center p-4 bg-gray-800 rounded-full shadow-lg border-4 border-yellow-400 z-10 relative">
-                        {/* Indicatore di Turno in alto a sinistra */}
+                    {/* Controlli Superiori: Tutti impilati verticalmente per schermi stretti */}
+                    <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
+                        {/* Indicatore di Turno */}
                         <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
 
-                        {/* Contenitore per i due lancia dadi (Attacca e Ritirata) al centro */}
-                        <div className="flex flex-row justify-center items-stretch gap-4 flex-grow px-2"> 
+                        {/* Contenitore per i dadi ATTACCA e RITIRATA (ora verticali) */}
+                        <div className="flex flex-col items-center gap-4 w-full">
                             {/* Lancia Dadi ATTACCA */}
-                            <DiceRoller 
+                            <DiceRoller
                                 title="ATTACCA"
-                                isAttackRoller={true} // This instance is the attack roller
+                                isAttackRoller={true}
                                 isDiceRollDisabled={diceRollDisableStatus}
                                 onConfusedRollAttempt={handleConfusedRollAttempt}
                                 isMyTurn={isMyTurn}
-                                onDiceRollComplete={toggleMyTurn} // Only attack roll ends the turn
-                                results={attackDiceResults} // Use attackDiceResults state
-                                onSetResults={setAttackDiceResults} // Use setter for attackDiceResults
-                                onDisplayResultsForBanner={handleDisplayDiceBanner} // Pass the banner display callback
-                            /> 
+                                onDiceRollComplete={toggleMyTurn}
+                                results={attackDiceResults}
+                                onSetResults={setAttackDiceResults}
+                                onDisplayResultsForBanner={handleDisplayDiceBanner}
+                            />
                             {/* Lancia Dadi RITIRATA */}
-                            <DiceRoller 
+                            <DiceRoller
                                 title="RITIRATA"
-                                isAttackRoller={false} // This instance is NOT the attack roller
-                                results={retreatDiceResults} // Use retreatDiceResults state
-                                onSetResults={setRetreatDiceResults} // Use setter for retreatDiceResults
-                                onDisplayResultsForBanner={handleDisplayDiceBanner} // Pass the banner display callback
-                                // No onDiceRollComplete, no specific disabling, no confusion check for retreat
-                            /> 
+                                isAttackRoller={false}
+                                results={retreatDiceResults}
+                                onSetResults={setRetreatDiceResults}
+                                onDisplayResultsForBanner={handleDisplayDiceBanner}
+                            />
                         </div>
+                        
+                        {/* Dado Movimento */}
+                        <MovementDiceRoller onRoll={handleRollMovementDice} />
 
-                        {/* Contenitore per Valuta Globale e Dado Movimento in alto a destra */}
-                        <div className="flex items-center space-x-4">
-                            {/* Nuovo DiceRoller per Movimento */}
-                            <MovementDiceRoller onRoll={handleRollMovementDice} />
-                            {/* Contatore di Valuta Globale */}
-                            <div className="bg-yellow-400 p-1 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700"> {/* Reduced p-2 to p-1 */}
-                                <span className="text-xl font-extrabold text-gray-800 mr-0.5">$</span> {/* Reduced text-3xl to text-xl, mr-1 to mr-0.5 */}
-                                <button
-                                    onClick={() => adjustGlobalCurrency(-1)}
-                                    className="btn-theme btn-red px-2 py-0.5 text-base" /* Reduced px-3 py-1 to px-2 py-0.5, text-xl to text-base */
-                                >
-                                    -
-                                </button>
-                                <input
-                                    type="number"
-                                    value={globalCurrency}
-                                    onChange={handleGlobalCurrencyChange}
-                                    className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-0.5 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner" /* Reduced w-24 to w-16, px-2 py-1 to px-1 py-0.5, text-xl to text-base, mx-1 to mx-0.5 */
-                                    min="0"
-                                />
-                                <button
-                                    onClick={() => adjustGlobalCurrency(1)}
-                                    className="btn-theme btn-green px-2 py-0.5 text-base" /* Reduced px-3 py-1 to px-2 py-0.5, text-xl to text-base */
-                                >
-                                    +
-                                </button>
-                            </div>
+                        {/* Contatore di Valuta Globale */}
+                        <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
+                            <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
+                            <button
+                                onClick={() => adjustGlobalCurrency(-1)}
+                                className="btn-theme btn-red px-2 py-0.5 text-base"
+                            >
+                                -
+                            </button>
+                            <input
+                                type="number"
+                                value={globalCurrency}
+                                onChange={handleGlobalCurrencyChange}
+                                className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner"
+                                min="0"
+                            />
+                            <button
+                                onClick={() => adjustGlobalCurrency(1)}
+                                className="btn-theme btn-green px-2 py-0.5 text-base"
+                            >
+                                +
+                            </button>
                         </div>
 
                         {/* Banner del lancio della moneta (per turno o confusione) */}
                         {showCoinFlipBanner && (
-                            <div className={`absolute right-2 top-1/2 transform -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
+                            <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
                                 {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
                             </div>
                         )}
@@ -1574,17 +1571,17 @@
                     )}
 
                     {/* Contenitore per gli slot delle carte */}
-                    {/* Impostato su 1 colonna per schermi piccoli, espandibile per schermi più grandi */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-md sm:max-w-3xl lg:max-w-6xl mt-8 pb-8"> 
+                    {/* Sempre una colonna per schermi verticali */}
+                    <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
                         {cards.map((cardData, index) => (
                             <CardSlot
                                 key={index} 
                                 slotIndex={index}
                                 cardData={cardData} 
                                 onUpdateCard={updateCardInSlot}
-                                onToggleActivePokemon={handleActivePokemonToggle} // Pass the new handler
-                                isMyTurn={isMyTurn} // Pass isMyTurn to CardSlot
-                                activeCardParalyzed={isMyTurn && activeCardForDice && activeCardForDice.statuses[3]} // Pass if an active card is paralyzed and it's my turn
+                                onToggleActivePokemon={handleActivePokemonToggle} 
+                                isMyTurn={isMyTurn} 
+                                activeCardParalyzed={isMyTurn && activeCardForDice && activeCardForDice.statuses[3]} 
                             />
                         ))}
                     </div>
