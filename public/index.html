@@ -41,18 +41,49 @@
             max-height: 90vh;
             overflow: auto;
         }
-        .camera-video {
+        /* Nuovo stile per il contenitore del video e l'overlay di inquadratura */
+        .camera-video-container {
+            position: relative;
             width: 100%;
-            max-width: 600px; /* Limita la larghezza del video */
-            height: auto;
-            border-radius: 8px;
+            max-width: 400px; /* Max width for the video stream */
+            padding-top: calc(4 / 3 * 100%); /* Proporzioni 3:4 (altezza = 4/3 di larghezza) */
+            height: 0; /* Set height to 0 to use padding-top for aspect ratio */
+            overflow: hidden;
             background-color: black;
+            border-radius: 8px;
             margin-bottom: 15px;
         }
+
+        .camera-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Assicura che il video riempia il contenitore */
+            transform: scaleX(-1); /* Specchia il video se è una fotocamera frontale */
+        }
+
+        .capture-frame-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 192px; /* Larghezza target della carta */
+            height: 256px; /* Altezza target della carta (proporzione 3:4) */
+            border: 3px dashed rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Permette il click attraverso l'overlay */
+            z-index: 10;
+        }
+
         /* Nasconde la canvas utilizzata per catturare l'immagine */
         .camera-canvas {
             display: none;
         }
+
+        /* Stili per l'anteprima della canvas */
+        /* REMOVED: .camera-canvas-preview */
 
         /* Stili aggiuntivi per i pulsanti tematici */
         .btn-theme {
@@ -151,11 +182,24 @@
 
         /* Stili per i segnalini medaglia */
         .medal-icon {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-3xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md;
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-4xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md; /* Aumentato a text-4xl */
         }
         .medal-icon.active {
             @apply scale-110 ring-2 ring-offset-2 ring-offset-green-700;
         }
+
+        /* Stili per i segnalini Superquattro */
+        .elite-four-icon {
+            @apply w-14 h-14 rounded-full flex items-center justify-center text-4xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-lg;
+            background: linear-gradient(to bottom, #4A5568, #2D3748); /* gray-700 to gray-800 */
+            color: #CBD5E0; /* text-gray-300 */
+        }
+        .elite-four-icon.active {
+            @apply scale-110 ring-2 ring-offset-2 ring-offset-yellow-400;
+            background: linear-gradient(to bottom, #FACC15, #EAB308); /* yellow-400 to yellow-600 */
+            color: #333; /* Dark text for active */
+        }
+
 
         /* Nasconde le frecce (spinner) dagli input di tipo number */
         input[type='number']::-webkit-inner-spin-button,
@@ -260,6 +304,9 @@
             const [availableCameras, setAvailableCameras] = React.useState([]);
             const [selectedCameraId, setSelectedCameraId] = React.useState('');
             const [cameraStatusMessage, setCameraStatusMessage] = React.useState("Inizializzazione fotocamera...");
+            const [isFrontCamera, setIsFrontCamera] = React.useState(false); // Nuovo stato per rilevare fotocamera frontale
+            // Nuovo stato per visualizzare le dimensioni effettive del video
+            const [actualVideoDimensions, setActualVideoDimensions] = React.useState({ width: 0, height: 0 });
 
             // Funzione per fermare lo stream della fotocamera
             const stopCurrentStream = React.useCallback((s) => {
@@ -275,22 +322,24 @@
                 if (videoRef.current) {
                     videoRef.current.srcObject = null; // Clear srcObject
                 }
+                setActualVideoDimensions({ width: 0, height: 0 }); // Resetta le dimensioni allo stop
             }, []);
 
             // Funzione per avviare lo stream della fotocamera
-            const startCamera = React.useCallback(async (deviceIdToUse, fallback = false) => {
+            const startCamera = React.useCallback(async (deviceIdToUse, facingMode = 'environment', fallback = false) => {
                 setCameraStatusMessage("Avvio fotocamera...");
                 setError(null);
+                setActualVideoDimensions({ width: 0, height: 0 }); // Resetta prima di un nuovo stream
 
-                // Stop any existing stream
+                // Ferma qualsiasi stream esistente
                 if (currentStream) {
                     stopCurrentStream(currentStream);
                 }
-                setCurrentStream(null); // Ensure currentStream is null before attempting to get a new stream
+                setCurrentStream(null); // Assicurati che currentStream sia null prima di tentare di ottenere un nuovo stream
 
                 try {
                     const constraints = {
-                        video: deviceIdToUse ? { deviceId: { exact: deviceIdToUse } } : true
+                        video: deviceIdToUse ? { deviceId: { exact: deviceIdToUse } } : { facingMode: facingMode }
                     };
                     console.log("Attempting getUserMedia with constraints:", constraints);
                     const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -302,22 +351,32 @@
                             setCameraStatusMessage("Attendere il video...");
                             videoRef.current.play().then(() => {
                                 console.log("Video played successfully.");
-                                setCameraStatusMessage(""); // Clear message on success
+                                setCameraStatusMessage(""); // Pulisci il messaggio in caso di successo
+                                // Cattura le dimensioni effettive del video dopo che inizia a riprodursi
+                                setActualVideoDimensions({ 
+                                    width: videoRef.current.videoWidth, 
+                                    height: videoRef.current.videoHeight 
+                                });
                             }).catch(playErr => {
                                 console.error("Error playing video after metadata loaded:", playErr);
                                 setError("Errore nella riproduzione del video della fotocamera. Assicurati che il browser consenta l'autoplay e riprova.");
                                 setCameraStatusMessage("Errore riproduzione video.");
                             });
                         };
-                        // If metadata already loaded (e.g., re-render), try to play immediately
-                        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA or more
+                        // Se i metadati sono già stati caricati (es. re-render), prova a riprodurre immediatamente
+                        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA o superiore
                              videoRef.current.play().catch(playErr => {
-                                console.error("Error playing video (readyState >=2):", playErr);
+                                 console.error("Error playing video (readyState >=2):", playErr);
                              });
                         }
                     }
-                    setCurrentStream(mediaStream); // Set stream to state after successful acquisition
+                    setCurrentStream(mediaStream); // Imposta lo stream nello stato dopo l'acquisizione riuscita
                     console.log("Camera started successfully with deviceId:", deviceIdToUse || "generic");
+
+                    // Determina se la fotocamera attuale è frontale
+                    const videoTrack = mediaStream.getVideoTracks()[0];
+                    const settings = videoTrack.getSettings();
+                    setIsFrontCamera(settings.facingMode === 'user');
 
                 } catch (err) {
                     console.error("Error accessing camera with deviceId:", deviceIdToUse, err);
@@ -327,26 +386,27 @@
                     } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
                         if (!fallback && availableCameras.length > 0) { 
                             console.log("Specific camera not found, attempting generic fallback or first available.");
-                            startCamera(availableCameras[0].deviceId, true); // Fallback to the first available camera if specific fails
+                            startCamera(availableCameras[0].deviceId, availableCameras[0].label.toLowerCase().includes('front') ? 'user' : 'environment', true); // Fallback
                             return; 
                         }
                         setError("Nessuna fotocamera disponibile.");
                     } else {
                         setError("Impossibile accedere alla fotocamera: " + err.message);
                     }
-                    stopCurrentStream(null); // Ensure cleanup on error
+                    stopCurrentStream(null); // Assicurati la pulizia in caso di errore
                 }
             }, [stopCurrentStream, currentStream, availableCameras]); 
 
             // Effetto principale per gestire l'apertura/chiusura della modale e l'inizializzazione della fotocamera
             React.useEffect(() => {
                 if (!isOpen) {
-                    stopCurrentStream(currentStream); // Stop stream when modal closes
+                    stopCurrentStream(currentStream); // Ferma lo stream quando la modale si chiude
                     setAvailableCameras([]);
                     setSelectedCameraId('');
                     setError(null);
                     setCameraStatusMessage("Inizializzazione fotocamera...");
-                    return; // Exit early if modal is closed
+                    setActualVideoDimensions({ width: 0, height: 0 }); // Resetta alla chiusura
+                    return; // Esci presto se la modale è chiusa
                 }
 
                 const setupDevicesAndStartInitialCamera = async () => {
@@ -364,7 +424,8 @@
                         }
 
                         let targetDeviceId = selectedCameraId; 
-                        // If no selected camera or selected camera is no longer available, pick a default
+                        let targetFacingMode = 'environment'; // Predefinito per la fotocamera posteriore
+                        // Se nessuna fotocamera selezionata o quella selezionata non è più disponibile, scegli una predefinita
                         if (!targetDeviceId || !videoInputs.some(device => device.deviceId === targetDeviceId)) { 
                             const rearCamera = videoInputs.find(device =>
                                 device.label.toLowerCase().includes('back') ||
@@ -372,11 +433,18 @@
                                 device.label.toLowerCase().includes('environment')
                             );
                             targetDeviceId = rearCamera ? rearCamera.deviceId : videoInputs[0].deviceId; 
-                            console.log("Determined initial targetDeviceId:", targetDeviceId);
+                            targetFacingMode = rearCamera ? 'environment' : (videoInputs[0].label.toLowerCase().includes('front') ? 'user' : 'environment');
+                            console.log("Determined initial targetDeviceId:", targetDeviceId, "facingMode:", targetFacingMode);
+                        } else {
+                            // Se una fotocamera selezionata viene trovata, prova a determinarne la modalità di orientamento
+                            const selectedCamera = videoInputs.find(device => device.deviceId === targetDeviceId);
+                            if (selectedCamera) {
+                                targetFacingMode = selectedCamera.label.toLowerCase().includes('front') ? 'user' : 'environment';
+                            }
                         }
                         
                         setSelectedCameraId(targetDeviceId); 
-                        startCamera(targetDeviceId); 
+                        startCamera(targetDeviceId, targetFacingMode); 
 
                     } catch (err) { 
                         console.error("Errore nell'enumerazione dei dispositivi o nell'avvio iniziale:", err);
@@ -387,57 +455,82 @@
 
                 setupDevicesAndStartInitialCamera();
 
-                // Cleanup function for useEffect
+                // Funzione di pulizia per useEffect
                 return () => {
-                    stopCurrentStream(currentStream); // This ensures stream is stopped when component unmounts or dependencies change
+                    stopCurrentStream(currentStream); // Questo assicura che lo stream venga fermato quando il componente viene smontato o le dipendenze cambiano
                 };
-            }, [isOpen]); // Keep isOpen as the primary dependency for this effect
+            }, [isOpen]); // Mantieni isOpen come dipendenza principale per questo effetto
 
-            // Effect to restart camera if selectedCameraId changes (user selects from dropdown)
+            // Effetto per riavviare la fotocamera se selectedCameraId cambia (l'utente seleziona dal dropdown)
             React.useEffect(() => {
                 if (isOpen && selectedCameraId && currentStream && currentStream.getTracks().length > 0 && currentStream.getVideoTracks()[0].getSettings().deviceId !== selectedCameraId) {
                     console.log("Selected camera ID changed by user, restarting camera with:", selectedCameraId);
-                    startCamera(selectedCameraId);
+                    const selectedCam = availableCameras.find(cam => cam.deviceId === selectedCameraId);
+                    const facingMode = selectedCam ? (selectedCam.label.toLowerCase().includes('front') ? 'user' : 'environment') : 'environment';
+                    startCamera(selectedCameraId, facingMode);
                 }
-            }, [selectedCameraId, isOpen, startCamera, currentStream]);
+            }, [selectedCameraId, isOpen, startCamera, currentStream, availableCameras]);
 
 
             // Cattura l'immagine dal video feed e la passa tramite onCapture
             const takePhoto = () => {
                 console.log("Attempting to take photo...");
-                console.log("videoRef.current:", videoRef.current);
-                console.log("canvasRef.current:", canvasRef.current);
-                console.log("currentStream:", currentStream);
-                console.log("videoRef.current?.videoWidth:", videoRef.current?.videoWidth);
-                console.log("videoRef.current?.videoHeight:", videoRef.current?.videoHeight);
-                console.log("videoRef.current?.readyState:", videoRef.current?.readyState);
-
-                // Add an explicit check for videoRef.current before accessing its properties
-                if (!videoRef.current) {
-                    setError("Errore: Elemento video non disponibile.");
+                // Aggiungi un controllo esplicito per videoRef.current prima di accedere alle sue proprietà
+                if (!videoRef.current || videoRef.current.readyState < 3 || !currentStream) {
+                    setError("Errore: Elemento video non disponibile o non pronto.");
                     setCameraStatusMessage("Errore interno: Video non pronto.");
-                    console.error("videoRef.current is null when attempting to take photo.");
+                    console.error("videoRef.current is null or not ready when attempting to take photo.");
                     return;
                 }
 
-                if (currentStream && videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0 && videoRef.current.readyState >= 3) { // Check readyState for video
-                    const video = videoRef.current;
-                    const canvas = canvasRef.current; 
+                const video = videoRef.current;
+                const canvas = canvasRef.current;
+                
+                // Definisci il rapporto d'aspetto target per una carta (es. 3:4 o 2.5:3.5)
+                // Per una carta Pokémon standard, le dimensioni tipiche sono circa 6.3 cm x 8.8 cm
+                // Rapporto: 8.8 / 6.3 ≈ 1.396 o ~ 3.5 / 2.5 = 1.4
+                // Usiamo il rapporto d'aspetto 3:4 per semplicità, che è 192x256 pixel come output target.
+                const targetWidth = 192; // px
+                const targetHeight = 256; // px
+                const targetRatio = targetWidth / targetHeight; // 0.75
 
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+                // Ottieni le dimensioni effettive del video
+                const videoWidth = video.videoWidth;
+                const videoHeight = video.videoHeight;
+                const videoRatio = videoWidth / videoHeight;
 
-                    const context = canvas.getContext('2d');
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                console.log("Video Dimensions (Native):", videoWidth, "x", videoHeight, "Ratio:", videoRatio);
+                console.log("Target Dimensions (Canvas):", targetWidth, "x", targetHeight, "Ratio:", targetRatio);
 
-                    const imageDataUrl = canvas.toDataURL('image/png');
-                    onCapture(imageDataUrl);
-                    onClose();
+                let sx, sy, sWidth, sHeight; // x, y, larghezza, altezza sorgente per il ritaglio
+
+                if (videoRatio > targetRatio) {
+                    // Il video è più largo del target. Ritaglia a sinistra/destra.
+                    sHeight = videoHeight;
+                    sWidth = sHeight * targetRatio;
+                    sx = (videoWidth - sWidth) / 2;
+                    sy = 0;
                 } else {
-                    setError("Nessun flusso video attivo o video non pronto per scattare la foto.");
-                    setCameraStatusMessage("Errore: Video non pronto per lo scatto.");
-                    console.error("Condizioni 'Scatta Foto' non soddisfatte:", { videoRef: videoRef.current, canvasRef: canvasRef.current, currentStream: currentStream, videoWidth: videoRef.current?.videoWidth, videoHeight: videoRef.current?.videoHeight, readyState: videoRef.current?.readyState });
+                    // Il video è più alto del target. Ritaglia in alto/basso.
+                    sWidth = videoWidth;
+                    sHeight = sWidth / targetRatio;
+                    sx = 0;
+                    sy = (videoHeight - sHeight) / 2;
                 }
+
+                console.log("Calculated Source Crop (sx, sy, sWidth, sHeight):", sx, sy, sWidth, sHeight);
+
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+
+                const context = canvas.getContext('2d');
+                // Disegna il frame video ritagliato sulla canvas
+                context.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
+
+                const imageDataUrl = canvas.toDataURL('image/png');
+
+                onCapture(imageDataUrl);
+                onClose();
             };
 
             if (!isOpen) return null; // Non renderizza nulla se la modale non è aperta
@@ -470,9 +563,25 @@
                             </div>
                         )}
 
-                        {/* Video Feed or placeholder */}
-                        <div className="relative w-full max-w-md h-72 rounded-lg bg-gray-700 overflow-hidden">
-                            <video ref={videoRef} className="camera-video absolute inset-0 w-full h-full object-cover" autoPlay playsInline muted></video>
+                        {/* Visualizza le dimensioni effettive del video */}
+                        {actualVideoDimensions.width > 0 && (
+                            <p className="text-gray-400 text-sm mb-2">
+                                Risoluzione video: {actualVideoDimensions.width}x{actualVideoDimensions.height}
+                            </p>
+                        )}
+
+                        {/* Video Feed con overlay di inquadratura */}
+                        <div className="camera-video-container">
+                            <video 
+                                ref={videoRef} 
+                                className="camera-video" 
+                                autoPlay 
+                                playsInline 
+                                muted 
+                                style={{ transform: isFrontCamera ? 'scaleX(-1)' : 'scaleX(1)' }} /* Applica flip solo se è fotocamera frontale */
+                            ></video>
+                            {/* Overlay per l'inquadratura della carta */}
+                            <div className="capture-frame-overlay"></div>
                             {/* Overlay per i messaggi di stato/errore se il video non è pronto */}
                             {(!currentStream || error || videoRef.current?.readyState < 2) && (
                                 <div className="absolute inset-0 flex justify-center items-center bg-gray-900 bg-opacity-80 text-gray-400 text-center p-4">
@@ -480,8 +589,9 @@
                                 </div>
                             )}
                         </div>
-                       
-                        <canvas ref={canvasRef} className="camera-canvas"></canvas>
+                        
+                        <canvas ref={canvasRef} className="camera-canvas" width="192" height="256"></canvas>
+                        
                         <div className="flex space-x-4 mt-4">
                             <button
                                 onClick={takePhoto}
@@ -512,6 +622,8 @@
             const [cardImage, setCardImage] = React.useState(cardData ? cardData.imageUrl : null);
             const [currentExp, setCurrentExp] = React.useState(cardData ? cardData.exp : 0);
             const [isActivePokemon, setIsActivePokemon] = React.useState(cardData ? cardData.isActivePokemon : false); // Nuovo stato per il Pokémon attivo
+            // Inizializza il livello di zoom a 1.6 (1.0 + 6 * 0.1) quando una nuova immagine viene caricata
+            const [zoomLevel, setZoomLevel] = React.useState(1.0); 
 
             // Stato per la finestra di conferma (generica) e i dettagli dell'azione da confermare
             const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
@@ -530,6 +642,12 @@
                     setCardImage(cardData.imageUrl);
                     setCurrentExp(cardData.exp);
                     setIsActivePokemon(cardData.isActivePokemon); // Sincronizza il nuovo stato
+                    // Imposta il livello di zoom iniziale a 1.6 se c'è un'immagine
+                    if (cardData.imageUrl) {
+                        setZoomLevel(1.6); 
+                    } else {
+                        setZoomLevel(1.0);
+                    }
                 } else {
                     // Resetta lo stato interno se cardData è null (slot pulito)
                     setBaseHp(0);
@@ -538,6 +656,7 @@
                     setCardImage(null);
                     setCurrentExp(0);
                     setIsActivePokemon(false); // Resetta anche lo stato attivo
+                    setZoomLevel(1.0); // Reset zoom
                 }
             }, [cardData]); // La dipendenza da cardData assicura che questo effetto venga eseguito quando cardData cambia
 
@@ -568,6 +687,7 @@
                     setIsConfirmModalOpen(true);
                 } else { // Nessuna immagine esistente, impostala e aggiorna il genitore
                     setCardImage(imageUrl);
+                    setZoomLevel(1.6); // Auto-zoom all'inserimento di una nuova immagine
                     updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
                 }
             };
@@ -604,9 +724,11 @@
                         setCurrentExp(0);
                         setCardImage(imageUrl);
                         setIsActivePokemon(false); // Azzera anche lo stato attivo
+                        setZoomLevel(1.6); // Auto-zoom dopo reset e replace
                         updateParentCardData(0, 0, Array(5).fill(false), imageUrl, 0, false);
                     } else {
                         setCardImage(imageUrl);
+                        setZoomLevel(1.6); // Auto-zoom dopo replace con mantenimento dati
                         updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
                     }
                 } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // This condition is correct
@@ -616,6 +738,7 @@
                     setStatuses(Array(5).fill(false));
                     setCurrentExp(0);
                     setIsActivePokemon(false); // Resetta anche lo stato attivo
+                    setZoomLevel(1.0); // Reset zoom
                     onUpdateCard(slotIndex, null); // Passa null per rimuovere completamente la carta
                 }
                 setConfirmAction(null); // Resetta l'azione in sospeso
@@ -721,6 +844,19 @@
 
             const currentHpValue = baseHp - damageTaken;
 
+            // Funzioni per gestire lo zoom
+            const handleZoomIn = () => {
+                setZoomLevel(prevZoom => Math.min(prevZoom + 0.1, 2.0)); // Zoom max 2x
+            };
+
+            const handleZoomOut = () => {
+                setZoomLevel(prevZoom => Math.max(prevZoom - 0.1, 1.0)); // Zoom min 1x
+            };
+
+            const handleResetZoom = () => {
+                setZoomLevel(1.0);
+            };
+
             return (
                 <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'}`}>
                     {/* Input file nascosto per il caricamento da file */}
@@ -760,12 +896,39 @@
 
                     {cardImage ? (
                         // Visualizza l'immagine della carta se disponibile
-                        <img
-                            src={cardImage}
-                            alt={"Carta " + (slotIndex + 1)}
-                            className="w-48 h-64 object-cover rounded-lg border-2 border-gray-600 mb-6 bg-gray-900 shadow-inner"
-                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/192x256/444/bbb?text=Errore+Immagine"; }}
-                        />
+                        <div className="relative w-48 h-64 overflow-hidden rounded-lg border-2 border-gray-600 mb-6 bg-gray-900 shadow-inner">
+                            <img
+                                src={cardImage}
+                                alt={"Carta " + (slotIndex + 1)}
+                                className="w-full h-full object-cover transition-transform duration-100 ease-out"
+                                style={{ transform: `scale(${zoomLevel})` }} // Applica lo zoom qui
+                                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/192x256/444/bbb?text=Errore+Immagine"; }}
+                            />
+                            {/* Controlli zoom sopra l'immagine */}
+                            <div className="absolute bottom-2 right-2 flex space-x-1">
+                                <button
+                                    onClick={handleZoomOut}
+                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                    title="Zoom Out"
+                                >
+                                    -
+                                </button>
+                                <button
+                                    onClick={handleZoomIn}
+                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                    title="Zoom In"
+                                >
+                                    +
+                                </button>
+                                <button
+                                    onClick={handleResetZoom}
+                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                    title="Reset Zoom"
+                                >
+                                    🔄
+                                </button>
+                            </div>
+                        </div>
                     ) : (
                         // Placeholder per richiedere il caricamento dell'immagine (verticale)
                         <div
@@ -1274,7 +1437,7 @@
                 // If there's an active card and it's Paralized and it's My Turn, prevent switching
                 if (isMyTurn && currentActiveCard && currentActiveCard.statuses[3]) { // statuses[3] is Paralizzato
                     console.log("Cannot change active Pokémon while current active is Paralizzato on your turn.");
-                    return; // Block the action
+                    return; 
                 }
 
                 setCards(prevCards => {
