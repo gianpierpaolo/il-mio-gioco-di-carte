@@ -82,9 +82,6 @@
             display: none;
         }
 
-        /* Stili per l'anteprima della canvas */
-        /* REMOVED: .camera-canvas-preview */
-
         /* Stili aggiuntivi per i pulsanti tematici */
         .btn-theme {
             padding: 0.75rem 1.5rem; /* Aumentato padding */
@@ -182,7 +179,7 @@
 
         /* Stili per i segnalini medaglia */
         .medal-icon {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-4xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md; /* Aumentato a text-4xl */
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-3xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md; /* Changed to text-3xl for uniformity */
         }
         .medal-icon.active {
             @apply scale-110 ring-2 ring-offset-2 ring-offset-green-700;
@@ -190,7 +187,7 @@
 
         /* Stili per i segnalini Superquattro */
         .elite-four-icon {
-            @apply w-14 h-14 rounded-full flex items-center justify-center text-4xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-lg;
+            @apply w-10 h-10 rounded-full flex items-center justify-center text-3xl cursor-pointer transition-all duration-200 ease-in-out border-2 border-gray-600 shadow-md; /* Changed to text-3xl for uniformity */
             background: linear-gradient(to bottom, #4A5568, #2D3748); /* gray-700 to gray-800 */
             color: #CBD5E0; /* text-gray-300 */
         }
@@ -272,6 +269,121 @@
         .animate-fade-in-out-dice-roll {
             animation: fadeInOutDiceRoll 3s ease-out forwards;
         }
+
+        /* Stili per la modale del lancio della moneta di cattura */
+        .capture-coin-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .capture-coin-modal-content {
+            background-color: #333;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: auto;
+            border: 4px solid #FACC15; /* Yellow border */
+        }
+        .capture-coin-modal-content h2 {
+            font-size: 2.5rem; /* text-4xl */
+            font-weight: 800; /* font-extrabold */
+            color: #FACC15; /* Yellow text */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .capture-coin-modal-content button {
+            padding: 1rem 2.5rem;
+            border-radius: 9999px;
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700;
+            background-image: linear-gradient(to bottom, #3B82F6, #2563EB); /* Blue gradient */
+            border: 2px solid #1D4ED8;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s ease-in-out;
+        }
+        .capture-coin-modal-content button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+        }
+        .capture-coin-modal-content button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .capture-coin-result {
+            font-size: 4rem; /* text-7xl */
+            font-weight: 900; /* font-black */
+            margin-top: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.6);
+        }
+        .capture-coin-result.success {
+            color: #22C55E; /* Green */
+        }
+        .capture-coin-result.fail {
+            color: #EF4444; /* Red */
+        }
+
+        /* Stili per la modale di zoom dell'immagine */
+        .zoom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .zoom-modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .zoom-modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        .zoom-modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .zoom-modal-close-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -281,10 +393,10 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/babel">
-        // Tutte le definizioni dei componenti React sono qui all'interno di un unico blocco script
-        // per garantire che Babel possa parsare correttamente JSX e JS.
+        // All React component definitions are here within a single script block
+        // to ensure Babel can correctly parse JSX and JS.
 
-        // Mapping dei numeri ai simboli dei dadi (emoji) - Globale per accessibilità
+        // Mapping numbers to dice symbols (emoji) - Global for accessibility
         const diceFaces = {
             1: '⚀',
             2: '⚁',
@@ -295,7 +407,7 @@
         };
 
         // CameraModal Component
-        // Modale per l'accesso e la cattura di immagini dalla fotocamera.
+        // Modal for camera access and image capture.
         function CameraModal({ isOpen, onClose, onCapture }) {
             const videoRef = React.useRef(null);
             const canvasRef = React.useRef(null);
@@ -304,11 +416,9 @@
             const [availableCameras, setAvailableCameras] = React.useState([]);
             const [selectedCameraId, setSelectedCameraId] = React.useState('');
             const [cameraStatusMessage, setCameraStatusMessage] = React.useState("Inizializzazione fotocamera...");
-            const [isFrontCamera, setIsFrontCamera] = React.useState(false); // Nuovo stato per rilevare fotocamera frontale
-            // Nuovo stato per visualizzare le dimensioni effettive del video
-            const [actualVideoDimensions, setActualVideoDimensions] = React.useState({ width: 0, height: 0 });
+            const [isFrontCamera, setIsFrontCamera] = React.useState(false); // New state to detect front camera
 
-            // Funzione per fermare lo stream della fotocamera
+            // Function to stop the camera stream
             const stopCurrentStream = React.useCallback((s) => {
                 if (s) {
                     console.log("Stopping tracks for stream:", s);
@@ -322,20 +432,18 @@
                 if (videoRef.current) {
                     videoRef.current.srcObject = null; // Clear srcObject
                 }
-                setActualVideoDimensions({ width: 0, height: 0 }); // Resetta le dimensioni allo stop
             }, []);
 
-            // Funzione per avviare lo stream della fotocamera
+            // Function to start the camera stream
             const startCamera = React.useCallback(async (deviceIdToUse, facingMode = 'environment', fallback = false) => {
                 setCameraStatusMessage("Avvio fotocamera...");
                 setError(null);
-                setActualVideoDimensions({ width: 0, height: 0 }); // Resetta prima di un nuovo stream
 
-                // Ferma qualsiasi stream esistente
+                // Stop any existing stream
                 if (currentStream) {
                     stopCurrentStream(currentStream);
                 }
-                setCurrentStream(null); // Assicurati che currentStream sia null prima di tentare di ottenere un nuovo stream
+                setCurrentStream(null); // Ensure currentStream is null before attempting to get a new stream
 
                 try {
                     const constraints = {
@@ -351,29 +459,24 @@
                             setCameraStatusMessage("Attendere il video...");
                             videoRef.current.play().then(() => {
                                 console.log("Video played successfully.");
-                                setCameraStatusMessage(""); // Pulisci il messaggio in caso di successo
-                                // Cattura le dimensioni effettive del video dopo che inizia a riprodursi
-                                setActualVideoDimensions({ 
-                                    width: videoRef.current.videoWidth, 
-                                    height: videoRef.current.videoHeight 
-                                });
+                                setCameraStatusMessage(""); // Clear message on success
                             }).catch(playErr => {
                                 console.error("Error playing video after metadata loaded:", playErr);
                                 setError("Errore nella riproduzione del video della fotocamera. Assicurati che il browser consenta l'autoplay e riprova.");
                                 setCameraStatusMessage("Errore riproduzione video.");
                             });
                         };
-                        // Se i metadati sono già stati caricati (es. re-render), prova a riprodurre immediatamente
-                        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA o superiore
+                        // If metadata already loaded (e.g., re-render), try to play immediately
+                        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA or more
                              videoRef.current.play().catch(playErr => {
                                  console.error("Error playing video (readyState >=2):", playErr);
                              });
                         }
                     }
-                    setCurrentStream(mediaStream); // Imposta lo stream nello stato dopo l'acquisizione riuscita
+                    setCurrentStream(mediaStream); // Set stream to state after successful acquisition
                     console.log("Camera started successfully with deviceId:", deviceIdToUse || "generic");
 
-                    // Determina se la fotocamera attuale è frontale
+                    // Determine if the current camera is front-facing
                     const videoTrack = mediaStream.getVideoTracks()[0];
                     const settings = videoTrack.getSettings();
                     setIsFrontCamera(settings.facingMode === 'user');
@@ -393,20 +496,19 @@
                     } else {
                         setError("Impossibile accedere alla fotocamera: " + err.message);
                     }
-                    stopCurrentStream(null); // Assicurati la pulizia in caso di errore
+                    stopCurrentStream(null); // Ensure cleanup on error
                 }
             }, [stopCurrentStream, currentStream, availableCameras]); 
 
-            // Effetto principale per gestire l'apertura/chiusura della modale e l'inizializzazione della fotocamera
+            // Main effect to handle modal opening/closing and camera initialization
             React.useEffect(() => {
                 if (!isOpen) {
-                    stopCurrentStream(currentStream); // Ferma lo stream quando la modale si chiude
+                    stopCurrentStream(currentStream); // Stop stream when modal closes
                     setAvailableCameras([]);
                     setSelectedCameraId('');
                     setError(null);
                     setCameraStatusMessage("Inizializzazione fotocamera...");
-                    setActualVideoDimensions({ width: 0, height: 0 }); // Resetta alla chiusura
-                    return; // Esci presto se la modale è chiusa
+                    return; // Exit early if modal is closed
                 }
 
                 const setupDevicesAndStartInitialCamera = async () => {
@@ -424,8 +526,8 @@
                         }
 
                         let targetDeviceId = selectedCameraId; 
-                        let targetFacingMode = 'environment'; // Predefinito per la fotocamera posteriore
-                        // Se nessuna fotocamera selezionata o quella selezionata non è più disponibile, scegli una predefinita
+                        let targetFacingMode = 'environment'; // Default to rear camera
+                        // If no selected camera or selected camera is no longer available, pick a default
                         if (!targetDeviceId || !videoInputs.some(device => device.deviceId === targetDeviceId)) { 
                             const rearCamera = videoInputs.find(device =>
                                 device.label.toLowerCase().includes('back') ||
@@ -436,7 +538,7 @@
                             targetFacingMode = rearCamera ? 'environment' : (videoInputs[0].label.toLowerCase().includes('front') ? 'user' : 'environment');
                             console.log("Determined initial targetDeviceId:", targetDeviceId, "facingMode:", targetFacingMode);
                         } else {
-                            // Se una fotocamera selezionata viene trovata, prova a determinarne la modalità di orientamento
+                            // If a selected camera is found, try to determine its facing mode
                             const selectedCamera = videoInputs.find(device => device.deviceId === targetDeviceId);
                             if (selectedCamera) {
                                 targetFacingMode = selectedCamera.label.toLowerCase().includes('front') ? 'user' : 'environment';
@@ -455,13 +557,13 @@
 
                 setupDevicesAndStartInitialCamera();
 
-                // Funzione di pulizia per useEffect
+                // Cleanup function for useEffect
                 return () => {
-                    stopCurrentStream(currentStream); // Questo assicura che lo stream venga fermato quando il componente viene smontato o le dipendenze cambiano
+                    stopCurrentStream(currentStream); // This ensures stream is stopped when component unmounts or dependencies change
                 };
-            }, [isOpen]); // Mantieni isOpen come dipendenza principale per questo effetto
+            }, [isOpen]); // Keep isOpen as the primary dependency for this effect
 
-            // Effetto per riavviare la fotocamera se selectedCameraId cambia (l'utente seleziona dal dropdown)
+            // Effect to restart camera if selectedCameraId changes (user selects from dropdown)
             React.useEffect(() => {
                 if (isOpen && selectedCameraId && currentStream && currentStream.getTracks().length > 0 && currentStream.getVideoTracks()[0].getSettings().deviceId !== selectedCameraId) {
                     console.log("Selected camera ID changed by user, restarting camera with:", selectedCameraId);
@@ -472,10 +574,10 @@
             }, [selectedCameraId, isOpen, startCamera, currentStream, availableCameras]);
 
 
-            // Cattura l'immagine dal video feed e la passa tramite onCapture
+            // Capture the image from the video feed and pass it via onCapture
             const takePhoto = () => {
                 console.log("Attempting to take photo...");
-                // Aggiungi un controllo esplicito per videoRef.current prima di accedere alle sue proprietà
+                // Add an explicit check for videoRef.current before accessing its properties
                 if (!videoRef.current || videoRef.current.readyState < 3 || !currentStream) {
                     setError("Errore: Elemento video non disponibile o non pronto.");
                     setCameraStatusMessage("Errore interno: Video non pronto.");
@@ -486,54 +588,46 @@
                 const video = videoRef.current;
                 const canvas = canvasRef.current;
                 
-                // Definisci il rapporto d'aspetto target per una carta (es. 3:4 o 2.5:3.5)
-                // Per una carta Pokémon standard, le dimensioni tipiche sono circa 6.3 cm x 8.8 cm
-                // Rapporto: 8.8 / 6.3 ≈ 1.396 o ~ 3.5 / 2.5 = 1.4
-                // Usiamo il rapporto d'aspetto 3:4 per semplicità, che è 192x256 pixel come output target.
+                // Define the target aspect ratio for a card (e.g., 3:4 or 2.5:3.5)
+                // For a standard Pokemon card, typical dimensions are about 6.3 cm x 8.8 cm
+                // Ratio: 8.8 / 6.3 ≈ 1.396 or ~ 3.5 / 2.5 = 1.4
+                // Let's use 3:4 aspect ratio for simplicity, which is 192x256 pixels as our target output.
                 const targetWidth = 192; // px
                 const targetHeight = 256; // px
-                const targetRatio = targetWidth / targetHeight; // 0.75
 
-                // Ottieni le dimensioni effettive del video
-                const videoWidth = video.videoWidth;
-                const videoHeight = video.videoHeight;
-                const videoRatio = videoWidth / videoHeight;
+                // Calculate the crop area to maintain 3:4 aspect ratio from the video stream
+                const videoRatio = video.videoWidth / video.videoHeight;
+                const targetRatio = targetWidth / targetHeight;
 
-                console.log("Video Dimensions (Native):", videoWidth, "x", videoHeight, "Ratio:", videoRatio);
-                console.log("Target Dimensions (Canvas):", targetWidth, "x", targetHeight, "Ratio:", targetRatio);
-
-                let sx, sy, sWidth, sHeight; // x, y, larghezza, altezza sorgente per il ritaglio
+                let sx, sy, sWidth, sHeight; // Source x, y, width, height for cropping
 
                 if (videoRatio > targetRatio) {
-                    // Il video è più largo del target. Ritaglia a sinistra/destra.
-                    sHeight = videoHeight;
+                    // Video is wider than target. Crop left/right.
+                    sHeight = video.videoHeight;
                     sWidth = sHeight * targetRatio;
-                    sx = (videoWidth - sWidth) / 2;
+                    sx = (video.videoWidth - sWidth) / 2;
                     sy = 0;
                 } else {
-                    // Il video è più alto del target. Ritaglia in alto/basso.
-                    sWidth = videoWidth;
+                    // Video is taller than target. Crop top/bottom.
+                    sWidth = video.videoWidth;
                     sHeight = sWidth / targetRatio;
                     sx = 0;
-                    sy = (videoHeight - sHeight) / 2;
+                    sy = (video.videoHeight - sHeight) / 2;
                 }
-
-                console.log("Calculated Source Crop (sx, sy, sWidth, sHeight):", sx, sy, sWidth, sHeight);
 
                 canvas.width = targetWidth;
                 canvas.height = targetHeight;
 
                 const context = canvas.getContext('2d');
-                // Disegna il frame video ritagliato sulla canvas
+                // Draw the cropped video frame onto the canvas
                 context.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, targetWidth, targetHeight);
 
                 const imageDataUrl = canvas.toDataURL('image/png');
-
                 onCapture(imageDataUrl);
                 onClose();
             };
 
-            if (!isOpen) return null; // Non renderizza nulla se la modale non è aperta
+            if (!isOpen) return null; // Do not render anything if the modal is not open
 
             return (
                 <div className="camera-modal-overlay">
@@ -542,7 +636,7 @@
                         {error && <p className="text-red-500 mb-4">{error}</p>}
                         {!error && <p className="text-blue-300 mb-4">{cameraStatusMessage}</p>}
 
-                        {/* Dropdown per la selezione della fotocamera */}
+                        {/* Dropdown for camera selection */}
                         {availableCameras.length > 1 && (
                             <div className="mb-4 w-full max-w-xs">
                                 <label htmlFor="camera-select" className="block text-gray-300 text-sm font-bold mb-2">
@@ -563,14 +657,7 @@
                             </div>
                         )}
 
-                        {/* Visualizza le dimensioni effettive del video */}
-                        {actualVideoDimensions.width > 0 && (
-                            <p className="text-gray-400 text-sm mb-2">
-                                Risoluzione video: {actualVideoDimensions.width}x{actualVideoDimensions.height}
-                            </p>
-                        )}
-
-                        {/* Video Feed con overlay di inquadratura */}
+                        {/* Video Feed with framing overlay */}
                         <div className="camera-video-container">
                             <video 
                                 ref={videoRef} 
@@ -578,11 +665,11 @@
                                 autoPlay 
                                 playsInline 
                                 muted 
-                                style={{ transform: isFrontCamera ? 'scaleX(-1)' : 'scaleX(1)' }} /* Applica flip solo se è fotocamera frontale */
+                                style={{ transform: isFrontCamera ? 'scaleX(-1)' : 'scaleX(1)' }} /* Apply flip only if it's a front camera */
                             ></video>
-                            {/* Overlay per l'inquadratura della carta */}
+                            {/* Overlay for card framing */}
                             <div className="capture-frame-overlay"></div>
-                            {/* Overlay per i messaggi di stato/errore se il video non è pronto */}
+                            {/* Overlay for status/error messages if video is not ready */}
                             {(!currentStream || error || videoRef.current?.readyState < 2) && (
                                 <div className="absolute inset-0 flex justify-center items-center bg-gray-900 bg-opacity-80 text-gray-400 text-center p-4">
                                     {error || cameraStatusMessage || "Attendere il video..."}
@@ -590,8 +677,7 @@
                             )}
                         </div>
                         
-                        <canvas ref={canvasRef} className="camera-canvas" width="192" height="256"></canvas>
-                        
+                        <canvas ref={canvasRef} className="camera-canvas"></canvas>
                         <div className="flex space-x-4 mt-4">
                             <button
                                 onClick={takePhoto}
@@ -612,28 +698,186 @@
             );
         }
 
-        // CardSlot component - Rappresenta un singolo slot per una carta
-        function CardSlot({ slotIndex, cardData, onUpdateCard, onToggleActivePokemon, isMyTurn, activeCardParalyzed }) { // Added isMyTurn, activeCardParalyzed props
-            // Stato interno per HP Base, Danni Subiti, stati, immagine della carta e punti esperienza,
-            // inizializzati da props o valori predefiniti
+        // New ZoomModal Component
+        function ZoomModal({ isOpen, imageUrl, onClose }) {
+            if (!isOpen || !imageUrl) return null;
+
+            return (
+                <div className="zoom-modal-overlay" onClick={onClose}>
+                    <div className="zoom-modal-content" onClick={(e) => e.stopPropagation()}> {/* Prevent closing when clicking on the image itself */}
+                        <img src={imageUrl} alt="Zoomed Card" />
+                        <button className="zoom-modal-close-btn" onClick={onClose}>×</button>
+                    </div>
+                </div>
+            );
+        }
+
+        // NEW: RecallFromBoxModal Component
+        function RecallFromBoxModal({ isOpen, onClose, boxCards, onSelectCardFromBox, onDeleteCardFromBox }) {
+            const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+            const [cardToDeleteIndex, setCardToDeleteIndex] = React.useState(null);
+
+            const handleDeleteClick = (index, e) => {
+                e.stopPropagation(); // Prevent selecting the card when clicking delete
+                setCardToDeleteIndex(index);
+                setIsDeleteConfirmOpen(true);
+            };
+
+            const confirmDelete = () => {
+                if (cardToDeleteIndex !== null) {
+                    onDeleteCardFromBox(cardToDeleteIndex);
+                    setIsDeleteConfirmOpen(false);
+                    setCardToDeleteIndex(null);
+                }
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="zoom-modal-overlay"> {/* Reusing zoom-modal-overlay for consistent styling */}
+                    <div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-yellow-400 flex flex-col items-center">
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-4">Seleziona dal Box</h2>
+                        {boxCards.length === 0 ? (
+                            <p className="text-gray-400 text-lg">Il box è vuoto. Invia prima alcune carte!</p>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-80vh p-2">
+                                {boxCards.map((card, index) => (
+                                    <div
+                                        key={index}
+                                        className="relative bg-gray-700 p-2 rounded-lg shadow-md border border-gray-600 cursor-pointer hover:bg-gray-600 transition-colors flex flex-col items-center"
+                                        onClick={() => onSelectCardFromBox(card, index)}
+                                    >
+                                        <img
+                                            src={card.imageUrl}
+                                            alt={`Box Card ${index + 1}`}
+                                            className="w-24 h-32 object-cover rounded-md border border-gray-500 mb-1"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/96x128/444/bbb?text=Errore"; }}
+                                        />
+                                        <p className="text-gray-300 text-xs">HP: {card.baseHp}</p>
+                                        <p className="text-gray-300 text-xs">EXP: {card.exp}</p>
+                                        <button
+                                            onClick={(e) => handleDeleteClick(index, e)}
+                                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-700"
+                                            title="Elimina dal Box"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="btn-theme btn-red mt-6 px-6 py-2 text-lg"
+                        >
+                            Chiudi
+                        </button>
+
+                        {/* Delete Confirmation Modal (internal to RecallFromBoxModal) */}
+                        {isDeleteConfirmOpen && (
+                            <div className="absolute inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-30 rounded-lg p-6">
+                                <p className="text-white text-center mb-6 text-xl font-bold">
+                                    Sei sicuro di voler eliminare questa carta dal Box?
+                                </p>
+                                <div className="flex space-x-4">
+                                    <button
+                                        onClick={confirmDelete}
+                                        className="btn-theme btn-red text-base md:text-lg"
+                                    >
+                                        Sì
+                                    </button>
+                                    <button
+                                        onClick={() => setIsDeleteConfirmOpen(false)}
+                                        className="btn-theme btn-gray text-base md:text-lg"
+                                    >
+                                        No
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // NEW: AddCardChoiceModal Component
+        function AddCardChoiceModal({ isOpen, onClose, onChooseNew, onChooseFromBox }) {
+            if (!isOpen) return null;
+
+            return (
+                <div className="zoom-modal-overlay"> {/* Reusing overlay style */}
+                    <div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-yellow-400 flex flex-col items-center">
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-6 text-center">Come vuoi aggiungere la carta?</h2>
+                        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 w-full justify-center">
+                            <button
+                                onClick={onChooseNew}
+                                className="btn-theme btn-green px-6 py-3 text-lg"
+                            >
+                                Nuova Carta 📸
+                            </button>
+                            <button
+                                onClick={onChooseFromBox}
+                                className="btn-theme btn-blue px-6 py-3 text-lg"
+                            >
+                                Scegli dal Box 📦
+                            </button>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="btn-theme btn-red mt-8 px-6 py-2 text-lg"
+                        >
+                            Annulla
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+
+        // CardSlot component - Represents a single card slot
+        function CardSlot({ slotIndex, cardData, onUpdateCard, onToggleActivePokemon, isMyTurn, activeCardParalyzed, onSendToBox, onRecallFromBox, boxCards }) { // Added onSendToBox, onRecallFromBox, boxCards props
+            // Internal state for Base HP, Damage Taken, statuses, card image, and experience points,
+            // initialized from props or default values
             const [baseHp, setBaseHp] = React.useState(cardData ? cardData.baseHp : 0);
             const [damageTaken, setDamageTaken] = React.useState(cardData ? cardData.damageTaken : 0);
             const [statuses, setStatuses] = React.useState(cardData ? cardData.statuses : Array(5).fill(false));
             const [cardImage, setCardImage] = React.useState(cardData ? cardData.imageUrl : null);
             const [currentExp, setCurrentExp] = React.useState(cardData ? cardData.exp : 0);
-            const [isActivePokemon, setIsActivePokemon] = React.useState(cardData ? cardData.isActivePokemon : false); // Nuovo stato per il Pokémon attivo
-            // Inizializza il livello di zoom a 1.6 (1.0 + 6 * 0.1) quando una nuova immagine viene caricata
-            const [zoomLevel, setZoomLevel] = React.useState(1.0); 
+            const [isActivePokemon, setIsActivePokemon] = React.useState(cardData ? cardData.isActivePokemon : false); // New state for active Pokémon
 
-            // Stato per la finestra di conferma (generica) e i dettagli dell'azione da confermare
+            // State for the generic confirmation window and details of the action to confirm
             const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
-            const [confirmAction, setConfirmAction] = React.useState(null); // { type: 'replace_image' | 'reset_full_slot', imageUrl?: string }
+            const [confirmAction, setConfirmAction] = React.useState(null); // { type: 'replace_image' | 'reset_full_slot' | 'send_to_box' | 'save_and_recall_from_box', imageUrl?: string }
 
-            // Riferimento per l'elemento input file nascosto
+            // Reference for the hidden file input element
             const fileInputRef = React.useRef(null);
-            const [showCameraModal, setShowCameraModal] = React.useState(false); // Stato per la modale fotocamera
+            const [showCameraModal, setShowCameraModal] = React.useState(false); // State for the camera modal
 
-            // Effetto per sincronizzare lo stato interno con le modifiche della prop cardData
+            // New state for zoom modal
+            const [showZoomModal, setShowZoomModal] = React.useState(false);
+            // NEW: State for recall from box modal
+            const [showRecallFromBoxModal, setShowRecallFromBoxModal] = React.useState(false);
+            // NEW: State for the add card choice modal
+            const [showAddCardChoiceModal, setShowAddCardChoiceModal] = React.useState(false);
+
+
+            // States for in-slot image zoom and pan
+            const [zoomLevel, setZoomLevel] = React.useState(1.0);
+            const [panX, setPanX] = React.useState(0); // in pixels
+            const [panY, setPanY] = React.useState(0); // in pixels
+
+            const MAX_ZOOM = 3.0;
+            const MIN_ZOOM = 1.0;
+            const ZOOM_STEP = 0.1;
+
+            // Function to reset zoom and pan
+            const resetCardView = React.useCallback(() => {
+                setZoomLevel(1.0);
+                setPanX(0);
+                setPanY(0);
+            }, []);
+
+            // Effect to synchronize internal state with changes in the cardData prop
             React.useEffect(() => {
                 if (cardData) {
                     setBaseHp(cardData.baseHp);
@@ -641,28 +885,28 @@
                     setStatuses(cardData.statuses);
                     setCardImage(cardData.imageUrl);
                     setCurrentExp(cardData.exp);
-                    setIsActivePokemon(cardData.isActivePokemon); // Sincronizza il nuovo stato
-                    // Imposta il livello di zoom iniziale a 1.6 se c'è un'immagine
-                    if (cardData.imageUrl) {
-                        setZoomLevel(1.6); 
-                    } else {
-                        setZoomLevel(1.0);
-                    }
+                    setIsActivePokemon(cardData.isActivePokemon); // Synchronize the new state
+                    // Apply initial zoom when a card is loaded
+                    setZoomLevel(1.0 + (5 * ZOOM_STEP)); // Changed from 4 to 5
+                    setPanX(0);
+                    setPanY(0);
                 } else {
-                    // Resetta lo stato interno se cardData è null (slot pulito)
+                    // Reset internal state if cardData is null (clean slot)
                     setBaseHp(0);
                     setDamageTaken(0);
                     setStatuses(Array(5).fill(false));
                     setCardImage(null);
                     setCurrentExp(0);
-                    setIsActivePokemon(false); // Resetta anche lo stato attivo
-                    setZoomLevel(1.0); // Reset zoom
+                    setIsActivePokemon(false); // Also reset active state
+                    setZoomLevel(1.0); // Reset to default zoom for empty slot
+                    setPanX(0);
+                    setPanY(0);
                 }
-            }, [cardData]); // La dipendenza da cardData assicura che questo effetto venga eseguito quando cardData cambia
+            }, [cardData]); // Dependency on cardData ensures this effect runs when cardData changes
 
             /**
-             * Aggiorna i dati della carta nel componente genitore.
-             * Questa funzione viene chiamata dopo ogni modifica a HP, Danni, stati, EXP o attivo.
+             * Updates the card data in the parent component.
+             * This function is called after each change to HP, Damage, statuses, EXP, or active status.
              */
             const updateParentCardData = React.useCallback((newBaseHp, newDamageTaken, newStatuses, newImageUrl, newExp, newIsActivePokemon) => {
                 onUpdateCard(slotIndex, {
@@ -671,49 +915,50 @@
                     damageTaken: newDamageTaken,
                     statuses: newStatuses,
                     exp: newExp,
-                    isActivePokemon: newIsActivePokemon // Includi il nuovo stato
+                    isActivePokemon: newIsActivePokemon // Include the new state
                 });
             }, [onUpdateCard, slotIndex]); // Add onUpdateCard and slotIndex to dependencies
 
             /**
-             * Gestisce la selezione di una nuova immagine (sia da file che da fotocamera).
-             * Se è presente una carta esistente, mostra una finestra di conferma.
-             * Altrimenti, carica l'immagine direttamente.
-             * @param {string} imageUrl - La Data URL della nuova immagine da caricare.
+             * Handles the selection of a new image (either from file or camera).
+             * If an existing card is present, it shows a confirmation window.
+             * Otherwise, it loads the image directly.
+             * @param {string} imageUrl - The Data URL of the new image to load.
              */
             const handleNewImageSelection = (imageUrl) => {
-                if (cardImage) { // Se c'è un'immagine esistente, chiedi all'utente
-                    setConfirmAction({ type: 'replace_image', imageUrl: imageUrl }); // Non include resetData qui, lo gestiamo nella modale
+                if (cardImage) { // If an existing image, ask the user
+                    setConfirmAction({ type: 'replace_image', imageUrl: imageUrl }); // Does not include resetData here, we handle it in the modal
                     setIsConfirmModalOpen(true);
-                } else { // Nessuna immagine esistente, impostala e aggiorna il genitore
+                } else { // No existing image, set it and update the parent
                     setCardImage(imageUrl);
-                    setZoomLevel(1.6); // Auto-zoom all'inserimento di una nuova immagine
                     updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
                 }
+                resetCardView(); // Reset view after image selection attempt
             };
 
             /**
-             * Gestisce il caricamento di un file immagine locale.
-             * @param {Event} event - L'evento di cambiamento dall'input file.
+             * Handles loading a local image file.
+             * @param {Event} event - The change event from the file input.
              */
             const handleFileUpload = (event) => {
                 const file = event.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onloadend = () => {
-                        handleNewImageSelection(reader.result); // Passa la Data URL alla funzione unificata
+                        handleNewImageSelection(reader.result); // Pass the Data URL to the unified function
                     };
-                    reader.readAsDataURL(file); // Legge il file immagine come Data URL
+                    reader.readAsDataURL(file); // Reads the image file as a Data URL
                 }
+                resetCardView(); // Reset view after file upload attempt
             };
 
             /**
-             * Gestisce le azioni della finestra di conferma (mantieni o azzera dati).
-             * @param {string} actionType - 'confirm_replace_image' o 'reset_full_slot'.
-             * @param {boolean} [shouldResetDataForImageReplace=false] - Solo per 'confirm_replace_image', true se i dati devono essere azzerati.
+             * Handles confirmation window actions (keep or clear data).
+             * @param {string} actionType - 'confirm_replace_image', 'reset_full_slot', or 'send_to_box'.
+             * @param {boolean} [shouldResetDataForImageReplace=false] - Only for 'confirm_replace_image', true if data should be cleared.
              */
             const handleConfirmAction = (actionType, shouldResetDataForImageReplace = false) => {
-                setIsConfirmModalOpen(false); // Chiudi la modale immediatamente
+                setIsConfirmModalOpen(false); // Close the modal immediately
 
                 if (actionType === 'confirm_replace_image' && confirmAction && confirmAction.type === 'replace_image') {
                     const imageUrl = confirmAction.imageUrl;
@@ -723,12 +968,10 @@
                         setStatuses(Array(5).fill(false));
                         setCurrentExp(0);
                         setCardImage(imageUrl);
-                        setIsActivePokemon(false); // Azzera anche lo stato attivo
-                        setZoomLevel(1.6); // Auto-zoom dopo reset e replace
+                        setIsActivePokemon(false); // Also clear active state
                         updateParentCardData(0, 0, Array(5).fill(false), imageUrl, 0, false);
                     } else {
                         setCardImage(imageUrl);
-                        setZoomLevel(1.6); // Auto-zoom dopo replace con mantenimento dati
                         updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
                     }
                 } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // This condition is correct
@@ -737,92 +980,159 @@
                     setDamageTaken(0);
                     setStatuses(Array(5).fill(false));
                     setCurrentExp(0);
-                    setIsActivePokemon(false); // Resetta anche lo stato attivo
-                    setZoomLevel(1.0); // Reset zoom
-                    onUpdateCard(slotIndex, null); // Passa null per rimuovere completamente la carta
+                    setIsActivePokemon(false); // Also reset active state
+                    onUpdateCard(slotIndex, null); // Pass null to completely remove the card
+                } else if (actionType === 'send_to_box' && confirmAction && confirmAction.type === 'send_to_box') {
+                    if (cardData) { // Ensure there's actually a card to send
+                        onSendToBox({
+                            imageUrl: cardImage,
+                            baseHp: baseHp,
+                            exp: currentExp
+                        }, slotIndex);
+                    }
+                } else if (actionType === 'save_and_recall_from_box' && confirmAction && confirmAction.type === 'save_and_recall_from_box') {
+                    if (shouldResetDataForImageReplace) { // This means "Sì" to saving current card
+                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: currentExp }, slotIndex); // Save current card
+                    } else { // This means "No" to saving current card, but still proceeding to recall
+                        // The current card will be overwritten, no explicit action needed here for it
+                    }
+                    setShowRecallFromBoxModal(true); // Always open the recall modal after confirmation
                 }
-                setConfirmAction(null); // Resetta l'azione in sospeso
+                setConfirmAction(null); // Reset the pending action
+                // Removed resetCardView() from here
             };
 
 
             /**
-             * Gestisce la modifica manuale del valore HP Base.
-             * @param {Event} event - L'evento di cambiamento dell'input.
+             * Handles manual modification of the Base HP value.
+             * @param {Event} event - The input change event.
              */
             const handleBaseHpChange = (event) => {
-                const value = parseInt(event.target.value) || 0; // Converte in numero, default 0
+                const value = parseInt(event.target.value) || 0; // Convert to number, default 0
                 setBaseHp(value);
                 updateParentCardData(value, damageTaken, statuses, cardImage, currentExp, isActivePokemon);
+                // Removed resetCardView() from here
             };
 
             /**
-             * Gestisce la modifica del contatore Danni, a multipli di 10.
-             * @param {number} amount - La quantità (multiplo di 10) da aggiungere (o sottrarre) ai Danni.
+             * Handles modification of the Damage counter, in multiples of 10.
+             * @param {number} amount - The amount (multiple of 10) to add (or subtract) to Damage.
              */
             const handleDamageChange = (amount) => {
                 setDamageTaken(prevDamage => {
-                    const newDamage = Math.max(0, prevDamage + amount); // I danni non possono essere negativi
+                    const newDamage = Math.max(0, prevDamage + amount); // Damage cannot be negative
                     updateParentCardData(baseHp, newDamage, statuses, cardImage, currentExp, isActivePokemon); 
                     return newDamage;
                 });
+                // Removed resetCardView() from here
             };
 
             /**
-             * Gestisce la modifica del contatore EXP per la carta corrente.
-             * Assicura che l'esperienza rimanga tra 0 e 6.
-             * @param {number} amount - La quantità da aggiungere (o sottrarre) all'EXP.
+             * Handles modification of the EXP counter for the current card.
+             * Ensures experience remains between 0 and 6.
+             * @param {number} amount - The amount to add (or subtract) to EXP.
              */
             const handleExpChange = (amount) => {
                 setCurrentExp(prevExp => {
-                    const newExp = Math.max(0, Math.min(6, prevExp + amount)); // Limite a 6
+                    const newExp = Math.max(0, Math.min(6, prevExp + amount)); // Limit to 6
                     updateParentCardData(baseHp, damageTaken, statuses, cardImage, newExp, isActivePokemon);
                     return newExp;
                 });
+                // Removed resetCardView() from here
             };
 
             /**
-             * Attiva/disattiva lo stato di un marker specifico.
-             * @param {number} index - L'indice del marker di stato (0-4).
+             * Toggles the state of a specific status marker.
+             * @param {number} index - The index of the status marker (0-4).
              */
             const toggleStatus = (index) => {
-                // I toggle degli status sono permessi solo se il Pokémon è attivo
+                // Status toggles are only allowed if the Pokémon is active
                 if (!isActivePokemon) return; 
 
                 setStatuses(prevStatuses => {
                     const newStatuses = [...prevStatuses];
-                    newStatuses[index] = !newStatuses[index]; // Attiva/disattiva lo stato
+                    newStatuses[index] = !newStatuses[index]; // Toggle the status
                     updateParentCardData(baseHp, damageTaken, newStatuses, cardImage, currentExp, isActivePokemon);
                     return newStatuses;
                 });
+                // Removed resetCardView() from here
             };
 
             /**
-             * Richiede la conferma per resettare completamente lo slot della carta.
+             * Requests confirmation to completely reset the card slot.
              */
             const requestFullSlotReset = () => {
                 setConfirmAction({ type: 'reset_full_slot' });
                 setIsConfirmModalOpen(true);
+                // Removed resetCardView() from here
             };
 
             /**
-             * Toggle lo stato di Pokémon attivo per questo slot.
-             * Chiama la funzione passata dal genitore per gestire la logica di unicità.
+             * Handles sending the card to the box.
+             */
+            const handleSendToBox = () => {
+                if (cardData) { // Only allow sending to box if there's a card in the slot
+                    setConfirmAction({ type: 'send_to_box' });
+                    setIsConfirmModalOpen(true);
+                }
+                // Removed resetCardView() from here
+            };
+
+            // Handles the click on the "BOX" button for recalling
+            const handleBoxRecallClick = () => {
+                if (cardData) { // If there's a card in the slot, ask to save it first
+                    setConfirmAction({ type: 'save_and_recall_from_box' });
+                    setIsConfirmModalOpen(true);
+                } else { // If the slot is empty, directly open the recall modal
+                    setShowRecallFromBoxModal(true);
+                }
+                // Removed resetCardView() from here
+            };
+
+            // NEW: Handle click on the "Aggiungi Carta" placeholder when slot is empty
+            const handleAddCardPlaceholderClick = () => {
+                if (boxCards && boxCards.length > 0) {
+                    setShowAddCardChoiceModal(true); // Show the choice modal
+                } else {
+                    setShowCameraModal(true); // Directly open camera if box is empty
+                }
+                // Removed resetCardView() from here
+            };
+
+            // NEW: Handlers for the AddCardChoiceModal
+            const handleChooseNewCard = () => {
+                setShowAddCardChoiceModal(false); // Close choice modal
+                setShowCameraModal(true); // Open camera modal
+                // Removed resetCardView() from here
+            };
+
+            const handleChooseFromBox = () => {
+                setShowAddCardChoiceModal(false); // Close choice modal
+                setShowRecallFromBoxModal(true); // Open recall modal
+                // Removed resetCardView() from here
+            };
+
+
+            /**
+             * Toggles the active Pokémon status for this slot.
+             * Calls the function passed from the parent to handle uniqueness logic.
              */
             const handleToggleActivePokemon = () => {
                 // The actual logic for toggling and unique active is in App.js.
                 // We just need to ensure we don't try to toggle if App.js has disabled it for 'paralyzed' reasons.
                 onToggleActivePokemon(slotIndex); // Call parent function
+                // Removed resetCardView() from here
             };
 
-            // Aggiorna lo stato interno isActivePokemon quando la prop cambia
+            // Update internal isActivePokemon state when the prop changes
             React.useEffect(() => {
                 setIsActivePokemon(cardData ? cardData.isActivePokemon : false);
-                // Quando la prop isActivePokemon diventa false (disattivata da un altro slot),
-                // resetta i local statuses per questa CardSlot.
+                // When the isActivePokemon prop becomes false (deactivated by another slot),
+                // reset local statuses for this CardSlot.
                 if (cardData && !cardData.isActivePokemon && statuses.some(s => s)) {
                     setStatuses(Array(5).fill(false));
-                    // Nota: Non chiamiamo updateParentCardData qui per evitare un loop infinito o stati non voluti.
-                    // La reset dei statuses dovrebbe essere gestita dal parent quando disattiva la carta.
+                    // Note: We don't call updateParentCardData here to avoid an infinite loop or unwanted states.
+                    // Status reset should be handled by the parent when deactivating the card.
                 }
             }, [cardData ? cardData.isActivePokemon : undefined]); // Only depend on isActivePokemon part of cardData
 
@@ -833,33 +1143,39 @@
             const isStarButtonDisabled = !isMyTurn || (isMyTurn && activeCardParalyzed && !isActivePokemon) || (isMyTurn && isActivePokemon && cardData && cardData.statuses[3]);
 
 
-            // Array di classi Tailwind per i colori dei marker di stato
+            // Tailwind CSS classes for status marker colors
             const statusColors = [
-                'bg-lime-500 hover:bg-lime-600',    /* 😴 Addormentato (Verde lime) */
-                'bg-rose-500 hover:bg-rose-600',    /* 🔥 Bruciato (Rosa/Rosso) */
-                'bg-sky-500 hover:bg-sky-600',      /* 😵 Confuso (Cielo Blu) */
-                'bg-yellow-500 hover:bg-yellow-600', /* 🛑 Paralizzato (Giallo) */
-                'bg-purple-500 hover:bg-purple-600' /* 💀 Avvelenato (Viola) - Colore originale */
+                'bg-lime-500 hover:bg-lime-600',    /* 😴 Asleep (Lime Green) */
+                'bg-rose-500 hover:bg-rose-600',    /* 🔥 Burned (Rose/Red) */
+                'bg-sky-500 hover:bg-sky-600',      /* 😵 Confused (Sky Blue) */
+                'bg-yellow-500 hover:bg-yellow-600', /* 🛑 Paralyzed (Yellow) */
+                'bg-purple-500 hover:bg-purple-600' /* 💀 Poisoned (Purple) - Original color */
             ];
 
             const currentHpValue = baseHp - damageTaken;
 
-            // Funzioni per gestire lo zoom
-            const handleZoomIn = () => {
-                setZoomLevel(prevZoom => Math.min(prevZoom + 0.1, 2.0)); // Zoom max 2x
+            // --- In-slot image zoom and pan functions ---
+            const handleZoom = (factor) => {
+                setZoomLevel(prevZoom => {
+                    const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prevZoom * factor));
+                    // When zooming, we try to keep the center. Pan values are reset on zoom out to MIN_ZOOM.
+                    if (newZoom === MIN_ZOOM) {
+                        setPanX(0);
+                        setPanY(0);
+                    }
+                    return newZoom;
+                });
             };
 
-            const handleZoomOut = () => {
-                setZoomLevel(prevZoom => Math.max(prevZoom - 0.1, 1.0)); // Zoom min 1x
-            };
-
-            const handleResetZoom = () => {
+            const handleResetView = () => {
                 setZoomLevel(1.0);
+                setPanX(0);
+                setPanY(0);
             };
 
             return (
                 <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'}`}>
-                    {/* Input file nascosto per il caricamento da file */}
+                    {/* Hidden file input for file upload */}
                     <input
                         type="file"
                         accept="image/*"
@@ -868,14 +1184,14 @@
                         className="hidden" 
                     />
 
-                    {/* Contenitore per HP Correnti e Indicatore Attivo */}
+                    {/* Current HP Container and Active Indicator */}
                     <div className="flex items-center justify-between w-full mb-4">
-                        {/* HP Correnti spostati sopra l'immagine */}
+                        {/* Current HP moved above the image */}
                         <div className="flex items-center space-x-2 text-2xl bg-gray-900 p-2 rounded-lg border-2 border-green-600 shadow-md flex-grow">
                             <span className="counter-label text-green-300">HP:</span>
                             <span className="counter-value text-green-500">{currentHpValue}</span>
                         </div>
-                        {/* Icona Attivo */}
+                        {/* Active Icon */}
                         <button
                             onClick={handleToggleActivePokemon} // Use the new handler
                             className={`ml-4 flex items-center justify-center w-12 h-12 rounded-full text-3xl shadow-md transition-all duration-200 ease-in-out border-2 ${isActivePokemon ? 'bg-yellow-400 border-yellow-600 text-gray-800' : 'bg-gray-600 border-gray-700 text-gray-300 hover:bg-gray-500'} ${isStarButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -887,7 +1203,7 @@
                     </div>
 
 
-                    {/* Banner ESAUSTO - Ora appare solo se c'è un'immagine E HP <= 0 */}
+                    {/* FAINTED Banner - Now appears only if there's an image AND HP <= 0 */}
                     {currentHpValue <= 0 && cardImage && (
                         <div className="absolute top-36 w-48 bg-red-700 text-white text-center font-extrabold text-2xl py-2 rounded-lg border-2 border-red-400 z-10 animate-pulse shadow-lg">
                             ESAUSTO
@@ -895,64 +1211,67 @@
                     )}
 
                     {cardImage ? (
-                        // Visualizza l'immagine della carta se disponibile
+                        // Display the card image if available with zoom/pan controls
                         <div className="relative w-48 h-64 overflow-hidden rounded-lg border-2 border-gray-600 mb-6 bg-gray-900 shadow-inner">
                             <img
                                 src={cardImage}
                                 alt={"Carta " + (slotIndex + 1)}
-                                className="w-full h-full object-cover transition-transform duration-100 ease-out"
-                                style={{ transform: `scale(${zoomLevel})` }} // Applica lo zoom qui
+                                className="w-full h-full object-cover transition-transform duration-100 ease-out cursor-pointer"
+                                style={{ transform: `scale(${zoomLevel}) translate(${panX}px, ${panY}px)` }}
+                                onClick={() => setShowZoomModal(true)} /* Open zoom modal on click */
                                 onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/192x256/444/bbb?text=Errore+Immagine"; }}
                             />
-                            {/* Controlli zoom sopra l'immagine */}
-                            <div className="absolute bottom-2 right-2 flex space-x-1">
+                            {/* Zoom controls overlay */}
+                            <div className="absolute bottom-2 right-2 flex items-center space-x-1 bg-gray-900 bg-opacity-70 p-1 rounded-lg shadow-md">
                                 <button
-                                    onClick={handleZoomOut}
-                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                    onClick={(e) => { e.stopPropagation(); handleZoom(1 / (1 + ZOOM_STEP)); }} /* Zoom out */
+                                    className="w-8 h-8 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
                                     title="Zoom Out"
+                                    disabled={zoomLevel <= MIN_ZOOM}
                                 >
                                     -
                                 </button>
                                 <button
-                                    onClick={handleZoomIn}
-                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                    onClick={(e) => { e.stopPropagation(); handleZoom(1 + ZOOM_STEP); }} /* Zoom in */
+                                    className="w-8 h-8 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
                                     title="Zoom In"
+                                    disabled={zoomLevel >= MAX_ZOOM}
                                 >
                                     +
                                 </button>
                                 <button
-                                    onClick={handleResetZoom}
-                                    className="bg-gray-700 text-white text-lg rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
-                                    title="Reset Zoom"
+                                    onClick={(e) => { e.stopPropagation(); handleResetView(); }}
+                                    className="w-8 h-8 rounded-full bg-red-600 text-white text-lg flex items-center justify-center shadow-md hover:bg-red-700 transition-colors"
+                                    title="Reset View"
                                 >
                                     🔄
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        // Placeholder per richiedere il caricamento dell'immagine (verticale)
+                        // Placeholder to request image upload (vertical)
                         <div
                             className="w-48 h-64 bg-gray-900 flex justify-center items-center text-gray-400 text-xl cursor-pointer rounded-lg border-4 border-dashed border-gray-600 mb-6 hover:bg-gray-800 transition-colors duration-300 shadow-inner"
-                            onClick={() => setShowCameraModal(true)} 
+                            onClick={handleAddCardPlaceholderClick} /* NEW: Use the new handler */
                         >
                             <span className="text-center font-bold">Aggiungi Carta</span>
                         </div>
                     )}
 
-                    {/* Mostra i controlli se è presente un'immagine O se lo slot ha dati persistenti */}
+                    {/* Show controls if an image is present OR if the slot has persistent data */}
                     {(cardData || cardImage) && (
                         <>
-                            {/* Pulsanti per caricare immagine - ora icone */}
+                            {/* Image upload buttons - now icons */}
                             <div className="flex space-x-4 mb-6 w-full justify-center">
                                 <button
-                                    onClick={() => fileInputRef.current.click()}
+                                    onClick={() => { fileInputRef.current.click(); }} 
                                     className="icon-btn btn-blue"
                                     title="Carica da File"
                                 >
                                     📁
                                 </button>
                                 <button
-                                    onClick={() => setShowCameraModal(true)}
+                                    onClick={() => { setShowCameraModal(true); }} 
                                     className="icon-btn btn-purple"
                                     title="Carica da Fotocamera"
                                 >
@@ -960,7 +1279,7 @@
                                 </button>
                             </div>
 
-                            {/* Input HP Manuale (senza freccette) */}
+                            {/* Manual HP Input (no spinners) */}
                             <div className="flex items-center space-x-4 mb-4 text-xl w-full justify-center">
                                 <span className="counter-label text-red-300">HP Base:</span>
                                 <input
@@ -972,7 +1291,7 @@
                                 />
                             </div>
 
-                            {/* Contatore Danni */}
+                            {/* Damage Counter */}
                             <div className="flex items-center space-x-4 mb-4 text-xl w-full justify-center">
                                 <span className="counter-label text-orange-300">Danni:</span>
                                 <button
@@ -990,7 +1309,7 @@
                                 </button>
                             </div>
 
-                            {/* Contatore Esperienza a pallini */}
+                            {/* Experience Counter with dots */}
                             <div className="flex items-center space-x-4 mb-6 text-xl w-full justify-center">
                                 <span className="counter-label text-purple-300">EXP:</span>
                                 <button
@@ -999,7 +1318,7 @@
                                 >
                                     -
                                 </button>
-                                <div className="flex space-x-1 px-2"> {/* Contenitore per i pallini */}
+                                <div className="flex space-x-1 px-2"> {/* Container for dots */}
                                     {[...Array(6)].map((_, i) => (
                                         <div
                                             key={i}
@@ -1015,34 +1334,21 @@
                                 </button>
                             </div>
 
-                            {/* Marker di Stato */}
+                            {/* Status Markers */}
                             <div className="flex space-x-3 mb-6">
                                 {statuses.map((isActive, index) => {
-                                    // Le classi cambiano se lo slot NON è attivo
+                                    // Classes change if the slot is NOT active
                                     const classes = [
                                         "w-10", "h-10", "rounded-full", "flex", "justify-center", "items-center",
-                                        "text-base", "font-bold", "transition-all", "duration-200",
+                                        "font-bold", "transition-all", "duration-200",
                                         "ease-in-out", "transform", "border-2", "border-gray-600", "shadow-md"
                                     ];
 
-                                    if (isActive) {
-                                        classes.push(statusColors[index]);
-                                        classes.push('scale-110', 'ring-2', 'ring-offset-2', 'ring-offset-gray-800', 'ring-opacity-75');
-                                    } else {
-                                        // Se non attivo, grigio e cursore non permesso, opacità ridotta
-                                        classes.push('bg-gray-600', 'text-gray-300');
-                                    }
-
-                                    // Aggiungi cursor-pointer solo se attivo, altrimenti cursor-not-allowed
-                                    if (isActivePokemon) {
-                                        classes.push('cursor-pointer', 'hover:bg-gray-500');
-                                    } else {
-                                        classes.push('cursor-not-allowed', 'opacity-50');
-                                    }
-
-
+                                    // Specific font size for '⚫' (Rock Medal) and '❄️' (Lorelei)
                                     let statusSymbol;
                                     let statusTitle;
+                                    let fontSizeClass = "text-base"; // Default font size
+
                                     switch(index) {
                                         case 0:
                                             statusSymbol = '😴';
@@ -1061,13 +1367,38 @@
                                             statusTitle = 'Paralizzato';
                                             break;
                                         case 4:
-                                            statusSymbol = '💀'; /* Cambiato da '🟣' a '💀' */
+                                            statusSymbol = '💀';
                                             statusTitle = 'Avvelenato';
                                             break;
                                         default:
                                             statusSymbol = '';
                                             statusTitle = '';
                                     }
+
+                                    // Apply specific font size if needed for large emojis
+                                    if (statusSymbol === '⚫' || statusSymbol === '❄️') {
+                                        fontSizeClass = "text-xl"; // Smaller font size for these specific emojis
+                                    } else {
+                                        fontSizeClass = "text-3xl"; // Default larger size for others
+                                    }
+                                    classes.push(fontSizeClass);
+
+
+                                    if (isActive) {
+                                        classes.push(statusColors[index]);
+                                        classes.push('scale-110', 'ring-2', 'ring-offset-2', 'ring-offset-gray-800', 'ring-opacity-75');
+                                    } else {
+                                        /* If not active, gray and not-allowed cursor, reduced opacity */
+                                        classes.push('bg-gray-600', 'text-gray-300');
+                                    }
+
+                                    // Add cursor-pointer only if active, otherwise cursor-not-allowed
+                                    if (isActivePokemon) {
+                                        classes.push('cursor-pointer', 'hover:bg-gray-500');
+                                    } else {
+                                        classes.push('cursor-not-allowed', 'opacity-50');
+                                    }
+
 
                                     return (
                                         <div
@@ -1082,8 +1413,15 @@
                                 })}
                             </div>
 
-                            {/* Pulsante Resetta Tutto lo Slot con icona */}
-                            <div className="flex justify-center w-full mt-2 max-w-xs">
+                            {/* Box and Reset Buttons */}
+                            <div className="flex justify-center w-full mt-2 space-x-4 max-w-xs">
+                                <button
+                                    onClick={handleBoxRecallClick} /* For recalling from box */
+                                    className="btn-theme btn-purple px-4 py-2 text-base flex-grow"
+                                    title="Richiama dal Box"
+                                >
+                                    BOX
+                                </button>
                                 <button
                                     onClick={requestFullSlotReset} 
                                     className="icon-btn btn-red"
@@ -1095,7 +1433,7 @@
                         </>
                     )}
 
-                    {/* Finestra di conferma generica (per replace image o reset slot) */}
+                    {/* Generic confirmation window (for replace image or reset slot or send to box) */}
                     {isConfirmModalOpen && (
                         <div className="absolute inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-20 rounded-lg p-6">
                             {confirmAction && confirmAction.type === 'replace_image' && (
@@ -1109,46 +1447,88 @@
                                     Questa azione è irreversibile.
                                 </p>
                             )}
+                            {confirmAction && confirmAction.type === 'send_to_box' && (
+                                <p className="text-white text-center mb-6 text-xl font-bold">
+                                    VUOI INVIARE AL BOX?
+                                </p>
+                            )}
+                            {confirmAction && confirmAction.type === 'save_and_recall_from_box' && (
+                                <p className="text-white text-center mb-6 text-xl font-bold">
+                                    VUOI SALVARE QUESTA CARTA NEL BOX PRIMA DI SOSTITUIRLA?
+                                </p>
+                            )}
                             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 w-full justify-center">
                                 {confirmAction && confirmAction.type === 'replace_image' && (
                                     <button
-                                        onClick={() => handleConfirmAction('confirm_replace_image', false)} // Mantieni Dati
+                                        onClick={() => handleConfirmAction('confirm_replace_image', false)} // Keep Data
                                         className="btn-theme btn-green text-base md:text-lg"
                                     >
                                         Mantieni Dati
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => handleConfirmAction(confirmAction.type === 'replace_image' ? 'confirm_replace_image' : 'reset_full_slot', true)} /* Corrected call: pass correct actionType based on confirmAction.type */
+                                    onClick={() => handleConfirmAction(confirmAction.type === 'replace_image' ? 'confirm_replace_image' : confirmAction.type, true)} /* Corrected call: pass correct actionType based on confirmAction.type */
                                     className="btn-theme btn-red text-base md:text-lg"
                                 >
-                                    {confirmAction && confirmAction.type === 'replace_image' ? 'Azzera Dati' : 'Sì, Resetta'}
+                                    {confirmAction && confirmAction.type === 'replace_image' ? 'Azzera Dati' : 'Sì'}
                                 </button>
-                                {confirmAction && confirmAction.type === 'reset_full_slot' && (
+                                {(confirmAction && (confirmAction.type === 'reset_full_slot' || confirmAction.type === 'send_to_box' || confirmAction.type === 'save_and_recall_from_box')) && (
                                     <button
-                                        onClick={() => setIsConfirmModalOpen(false)} // Annulla il reset completo
+                                        onClick={() => { setIsConfirmModalOpen(false); }} 
                                         className="btn-theme btn-gray text-base md:text-lg"
                                     >
-                                        No, Annulla
+                                        No
                                     </button>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {/* Modale della fotocamera */}
+                    {/* Camera modal */}
                     <CameraModal
                         isOpen={showCameraModal}
-                        onClose={() => setShowCameraModal(false)}
+                        onClose={() => { setShowCameraModal(false); }} 
                         onCapture={handleNewImageSelection} 
+                    />
+
+                    {/* Zoom modal */}
+                    <ZoomModal
+                        isOpen={showZoomModal}
+                        imageUrl={cardImage}
+                        onClose={() => setShowZoomModal(false)}
+                    />
+
+                    {/* Recall from Box modal */}
+                    <RecallFromBoxModal
+                        isOpen={showRecallFromBoxModal}
+                        onClose={() => { setShowRecallFromBoxModal(false); }} 
+                        boxCards={boxCards}
+                        onSelectCardFromBox={(selectedCard, boxCardIndex) => {
+                            onRecallFromBox(selectedCard, slotIndex, boxCardIndex);
+                            setShowRecallFromBoxModal(false); // Close modal after selection
+                            resetCardView(); // This must remain to reset view after a new card is loaded from box
+                        }}
+                        onDeleteCardFromBox={(indexToDelete) => {
+                            // This function is passed from App -> CardSlot -> RecallFromBoxModal
+                            // It directly calls the App's delete function.
+                            onRecallFromBox(null, null, indexToDelete, true); // Use onRecallFromBox to trigger deletion in App
+                        }}
+                    />
+
+                    {/* NEW: Add Card Choice Modal */}
+                    <AddCardChoiceModal
+                        isOpen={showAddCardChoiceModal}
+                        onClose={() => { setShowAddCardChoiceModal(false); }} 
+                        onChooseNew={handleChooseNewCard}
+                        onChooseFromBox={handleChooseFromBox}
                     />
                 </div>
             );
         }
 
-        // Componente per visualizzare e gestire le medaglie
-        function MedalDisplay({ medals, onToggleMedal }) {
-            // Emojis che rappresentano le 8 medaglie dall'immagine fornita
+        // Component to display and manage Gym medals
+        function MedalDisplay({ gymMedals, onToggleMedal }) { 
+            // Emojis representing the 8 medals from the provided image
             const medalSymbols = ['⚫', '💧', '⚡', '🌈', '❤️', '🟠', '🌋', '🌿']; 
             const medalTitles = [
                 'Medaglia Roccia', 'Medaglia Cascata', 'Medaglia Saetta', 'Medaglia Arcobaleno', 
@@ -1156,42 +1536,91 @@
             ];
 
             return (
-                <div className="flex flex-wrap justify-center space-x-2 space-y-2 p-3 bg-gray-800 rounded-full shadow-lg border-2 border-yellow-400 max-w-sm"> {/* Aggiunto max-w-sm */}
-                    {medals.map((isActive, index) => {
-                        const classes = [
-                            "medal-icon",
-                            isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-                        ];
-                        return (
-                            <div
-                                key={index}
-                                className={classes.join(' ')}
-                                onClick={() => onToggleMedal(index)}
-                                title={medalTitles[index]}
-                            >
-                                {medalSymbols[index]}
-                            </div>
-                        );
-                    })}
+                <div className="flex flex-col items-center p-3 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-sm w-full">
+                    <h3 className="text-xl font-bold text-yellow-300 mb-4">PALESTRE</h3>
+                    <div className="flex flex-wrap justify-center space-x-2 space-y-2">
+                        {gymMedals.map((isActive, index) => {
+                            const classes = [
+                                "medal-icon",
+                                isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                            ];
+                            // Specific font size for '⚫' (Rock Medal)
+                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl";
+                            classes.push(fontSizeClass);
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={classes.join(' ')}
+                                    onClick={() => onToggleMedal(index)}
+                                    title={medalTitles[index]}
+                                >
+                                    {medalSymbols[index]}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             );
         }
 
-        // Componente per il lancio dei dadi (ora più generico)
-        function DiceRoller({ title, isAttackRoller, isDiceRollDisabled, onConfusedRollAttempt, isMyTurn, onDiceRollComplete, results, onSetResults, onDisplayResultsForBanner }) { 
-            const [numberOfDice, setNumberOfDice] = React.useState(1);
-            const [criticalHit, setCriticalHit] = React.useState(false); // Solo per isAttackRoller
-            const [attackFailed, setAttackFailed] = React.useState(false); // Solo per isAttackRoller
+        // New Component to display and manage Elite Four medals
+        function EliteFourDisplay({ eliteFourMedals, onToggleMedal }) { 
+            // Emojis representing the 4 Elite Four members from Pokémon Red
+            const eliteFourSymbols = ['❄️', '✊', '👻', '🐉']; 
+            const eliteFourTitles = [
+                'Superquattro Lorelei', 'Superquattro Bruno', 'Superquattro Agatha', 'Superquattro Lance'
+            ];
 
-            // Mapping dei numeri ai simboli dei dadi (emoji)
+            return (
+                <div className="flex flex-col items-center p-3 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-sm w-full mt-8 pb-20"> {/* Changed pb-8 to pb-20 for more bottom space */}
+                    <h3 className="text-xl font-bold text-yellow-300 mb-4">SUPERQUATTRO</h3>
+                    <div className="flex flex-wrap justify-center space-x-2 space-y-2">
+                        {eliteFourMedals.map((isActive, index) => {
+                            const classes = [
+                                "elite-four-icon", /* Uses the new elite-four-icon class */
+                                isActive ? "active" : "" /* Active state handled by CSS */
+                            ];
+                            // Specific font size for '❄️' (Lorelei)
+                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl";
+                            classes.push(fontSizeClass);
+
+                            return (
+                                <div
+                                    key={index}
+                                    className={classes.join(' ')}
+                                    onClick={() => onToggleMedal(index)}
+                                    title={eliteFourTitles[index]}
+                                >
+                                    {eliteFourSymbols[index]}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        }
+
+        // Component for rolling dice (now more generic)
+        function DiceRoller({ title, isAttackRoller, isDiceRollDisabled, onConfusedRollAttempt, isMyTurn, onDiceRollComplete, results, onSetResults, onDisplayResultsForBanner, isCaptureRoller, onCaptureCoinFlipNeeded }) { 
+            const [numberOfDice, setNumberOfDice] = React.useState(1);
+            const [criticalHit, setCriticalHit] = React.useState(false); // Only for isAttackRoller
+            const [attackFailed, setAttackFailed] = React.useState(false); // Only for isAttackRoller
+            const [retreatFailed, setRetreatFailed] = React.useState(false); // For Retreat roller
+            const [retreatSuccess, setRetreatSuccess] = React.useState(false); // For Retreat roller
+            const [captureFailed, setCaptureFailed] = React.useState(false); // New state for Capture roller
+
+            // Mapping numbers to dice symbols (emoji)
             // const diceFaces = { ... }; moved globally
 
             const handleRoll = async () => {
-                // Reset banners for Attack Roller
-                if (isAttackRoller) {
-                    setCriticalHit(false);
-                    setAttackFailed(false);
-                }
+                // Reset banners for all roller types
+                setCriticalHit(false);
+                setAttackFailed(false);
+                setRetreatFailed(false);
+                setRetreatSuccess(false);
+                setCaptureFailed(false);
+
                 onSetResults([]); // Clear previous results immediately via parent prop
 
                 // Logic specific to Attack Roller
@@ -1217,7 +1646,7 @@
                 let onesCount = 0;
 
                 for (let i = 0; i < numberOfDice; i++) {
-                    const roll = Math.floor(Math.random() * 6) + 1; // Dado a 6 facce
+                    const roll = Math.floor(Math.random() * 6) + 1; // 6-sided die
                     newResults.push(roll);
                     if (roll === 4) {
                         foursCount++;
@@ -1229,28 +1658,54 @@
                 onSetResults(newResults); // Update results via parent prop
                 onDisplayResultsForBanner(newResults); // Display results on the big banner
 
-                // Determine banners only for Attack Roller
+                // Determine banners and turn end based on roller type
                 if (isAttackRoller) {
-                    if (foursCount >= 2) {
-                        setCriticalHit(true);
-                        setAttackFailed(false); // Prioritizza Critical Hit
-                    } else if (onesCount >= 1) {
+                    // New logic for Critical Hit based on number of dice
+                    if (numberOfDice <= 3) {
+                        if (foursCount >= 2) {
+                            setCriticalHit(true);
+                        }
+                    } else { // numberOfDice > 3
+                        if (foursCount >= 3) {
+                            setCriticalHit(true);
+                        }
+                    }
+                    
+                    if (onesCount >= 1) {
                         setAttackFailed(true);
-                        setCriticalHit(false);
+                        setCriticalHit(false); // Prioritize Attack Failed over Critical Hit
                     } else {
-                        setCriticalHit(false);
                         setAttackFailed(false);
                     }
                     onDiceRollComplete(); // End turn after a successful dice roll for Attack Roller
+                } else if (!isCaptureRoller) { // Logic for Retreat Roller (not Capture Roller)
+                    if (onesCount >= 1) {
+                        setRetreatFailed(true);
+                        setRetreatSuccess(false);
+                    } else {
+                        setRetreatSuccess(true);
+                        setRetreatFailed(false);
+                    }
+                    onDiceRollComplete(); // End turn after a successful dice roll for Retreat Roller
+                } else { // Logic for Capture Roller (isCaptureRoller === true)
+                    if (onesCount >= 1) {
+                        setCaptureFailed(true);
+                        onDiceRollComplete(); // End turn immediately if capture failed
+                    } else {
+                        // If no 1s, trigger the coin flip in App.js
+                        onCaptureCoinFlipNeeded();
+                        // Do NOT call onDiceRollComplete here, App.js will handle turn end after coin flip
+                    }
                 }
             };
 
             // Determine if the roll button should be disabled for this specific DiceRoller instance
-            let isDisabled = false;
+            let isDisabled = !isMyTurn; // General rule: disabled if it's not my turn
             if (isAttackRoller) {
-                isDisabled = isDiceRollDisabled === 'asleep' || isDiceRollDisabled === 'paralyzed' || !isMyTurn;
+                isDisabled = isDisabled || isDiceRollDisabled === 'asleep' || isDiceRollDisabled === 'paralyzed';
             }
-            // For Retreat, it's always enabled unless specific rules are added later
+            // For Retreat and Capture, the only additional disable condition is !isMyTurn, which is already covered.
+
 
             return (
                 <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4"> {/* flex-1 and min-w to make them share space */}
@@ -1301,11 +1756,28 @@
                             ATTACCO FALLITO!
                         </div>
                     )}
+                    {/* Banners only for Retreat Roller */}
+                    {!isAttackRoller && !isCaptureRoller && retreatFailed && (
+                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
+                            FALLITA!
+                        </div>
+                    )}
+                    {!isAttackRoller && !isCaptureRoller && retreatSuccess && (
+                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse text-center w-full">
+                            RIUSCITA!
+                        </div>
+                    )}
+                    {/* Banners only for Capture Roller */}
+                    {isCaptureRoller && captureFailed && (
+                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
+                            FALLITA!
+                        </div>
+                    )}
                 </div>
             );
         }
 
-        // Componente per il lancio del dado di Movimento
+        // Component for rolling the Movement die
         function MovementDiceRoller({ onRoll }) {
             return (
                 <button
@@ -1319,9 +1791,9 @@
             );
         }
 
-        // Componente per l'indicatore di turno
+        // Component for the turn indicator
         function TurnIndicator({ isMyTurn, onToggleTurn }) {
-            const icon = isMyTurn ? '🏁' : '🚩'; // Bandiera a scacchi per il proprio turno, bandiera rossa per l'altro
+            const icon = isMyTurn ? '🏁' : '🚩'; // Checkered flag for your turn, red flag for opponent
             const title = isMyTurn ? 'Il tuo turno' : 'Turno avversario';
             const bgColor = isMyTurn ? 'bg-green-500' : 'bg-red-500';
             const borderColor = isMyTurn ? 'border-green-700' : 'border-red-700';
@@ -1337,10 +1809,117 @@
             );
         }
 
+        // New CaptureCoinFlipModal Component
+        function CaptureCoinFlipModal({ isOpen, onFlipCoin, coinResult, finalOutcome }) {
+            if (!isOpen) return null;
 
-        // App component - Contenitore principale per l'interfaccia di gioco
+            return (
+                <div className="capture-coin-modal-overlay">
+                    <div className="capture-coin-modal-content">
+                        {!coinResult && (
+                            <>
+                                <h2>Lancio della Moneta di Cattura!</h2>
+                                <button onClick={onFlipCoin}>Lancia Moneta</button>
+                            </>
+                        )}
+                        {coinResult && (
+                            <>
+                                <h2>Risultato: {coinResult === 'heads' ? 'TESTA' : 'CROCE'}</h2>
+                                <p className={`capture-coin-result ${finalOutcome === 'PRESO' ? 'success' : 'fail'}`}>
+                                    {finalOutcome}
+                                </p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // NEW: BoxView Component
+        function BoxView({ boxCards, onBackToMain, onDeleteCardFromBox }) { // Added onDeleteCardFromBox
+            const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+            const [cardToDeleteIndex, setCardToDeleteIndex] = React.useState(null);
+
+            const handleDeleteClick = (index) => {
+                setCardToDeleteIndex(index);
+                setIsDeleteConfirmOpen(true);
+            };
+
+            const confirmDelete = () => {
+                if (cardToDeleteIndex !== null) {
+                    onDeleteCardFromBox(cardToDeleteIndex);
+                    setIsDeleteConfirmOpen(false);
+                    setCardToDeleteIndex(null);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-gray-700 to-gray-900 p-4 relative">
+                    <h2 className="text-4xl font-extrabold text-yellow-300 mb-8 text-center">IL TUO BOX POKÉMON</h2>
+                    
+                    <button
+                        onClick={onBackToMain}
+                        className="btn-theme btn-blue mb-8 px-6 py-3 text-lg"
+                    >
+                        Torna al Gioco
+                    </button>
+
+                    {boxCards.length === 0 ? (
+                        <p className="text-gray-400 text-xl mt-8">Il tuo box è vuoto. Invia alcune carte!</p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl">
+                            {boxCards.map((card, index) => (
+                                <div key={index} className="relative bg-gray-800 p-4 rounded-xl shadow-lg border-2 border-gray-600 flex flex-col items-center">
+                                    <img
+                                        src={card.imageUrl}
+                                        alt={`Carta nel Box ${index + 1}`}
+                                        className="w-32 h-44 object-cover rounded-lg border border-gray-700 mb-2"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/128x176/444/bbb?text=Errore+Immagine"; }}
+                                    />
+                                    <p className="text-gray-300 text-sm font-semibold">HP Base: {card.baseHp}</p>
+                                    <p className="text-gray-300 text-sm font-semibold">EXP: {card.exp}</p>
+                                    <button
+                                        onClick={() => handleDeleteClick(index)}
+                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-700"
+                                        title="Elimina dal Box"
+                                    >
+                                        X
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Delete Confirmation Modal for BoxView */}
+                    {isDeleteConfirmOpen && (
+                        <div className="fixed inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-50 rounded-lg p-6">
+                            <p className="text-white text-center mb-6 text-xl font-bold">
+                                Sei sicuro di voler eliminare questa carta dal Box?
+                                Questa azione è irreversibile.
+                            </p>
+                            <div className="flex space-x-4">
+                                <button
+                                    onClick={confirmDelete}
+                                    className="btn-theme btn-red text-base md:text-lg"
+                                >
+                                    Sì, Elimina
+                                </button>
+                                <button
+                                    onClick={() => setIsDeleteConfirmOpen(false)}
+                                    className="btn-theme btn-gray text-base md:text-lg"
+                                >
+                                    No, Annulla
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // App component - Main container for the game interface
         function App() {
-            // Inizializza lo stato delle carte da localStorage o un array vuoto di 6 slot
+            // Initialize card state from localStorage or an empty array of 6 slots
             const [cards, setCards] = React.useState(() => {
                 const savedCards = localStorage.getItem('gameCards');
                 // Ensure isActivePokemon is properly initialized for existing cards
@@ -1353,69 +1932,103 @@
                 } : null);
             });
 
-            // Stato per il contatore di valuta globale
+            // NEW: State for cards in the Box
+            const [boxCards, setBoxCards] = React.useState(() => {
+                const savedBoxCards = localStorage.getItem('pokemonBoxCards');
+                return savedBoxCards ? JSON.parse(savedBoxCards) : [];
+            });
+
+            // NEW: State to control current view ('main' or 'box')
+            const [currentView, setCurrentView] = React.useState('main');
+
+
+            // State for global currency counter
             const [globalCurrency, setGlobalCurrency] = React.useState(() => {
                 const savedCurrency = localStorage.getItem('globalCurrency');
                 return savedCurrency ? parseInt(savedCurrency) : 0;
             });
 
-            // Stato per le medaglie globali
-            const [medals, setMedals] = React.useState(() => {
-                const savedMedals = localStorage.getItem('gameMedals');
-                // Inizializza con 8 elementi, tutti a false di default
+            // State for global medals (Gyms)
+            const [gymMedals, setGymMedals] = React.useState(() => {
+                const savedMedals = localStorage.getItem('gymMedals');
+                // Initialize with 8 elements, all false by default
                 return savedMedals ? JSON.parse(savedMedals) : Array(8).fill(false); 
             });
 
-            // Stato per l'indicatore di turno
-            const [isMyTurn, setIsMyTurn] = React.useState(() => {
-                const savedTurnState = localStorage.getItem('isMyTurn');
-                return savedTurnState ? JSON.parse(savedTurnState) : false; // Default: non è il tuo turno
+            // State for Elite Four medals
+            const [eliteFourMedals, setEliteFourMedals] = React.useState(() => {
+                const savedEliteFourMedals = localStorage.getItem('eliteFourMedals');
+                // Initialize with 4 elements, all false by default
+                return savedEliteFourMedals ? JSON.parse(savedEliteFourMedals) : Array(4).fill(false);
             });
 
-            // Stato per il banner della moneta (sia per addormentato che per confuso)
+            // State for turn indicator
+            const [isMyTurn, setIsMyTurn] = React.useState(() => {
+                const savedTurnState = localStorage.getItem('isMyTurn');
+                return savedTurnState ? JSON.parse(savedTurnState) : false; // Default: not your turn
+            });
+
+            // State for coin flip banner (for both asleep and confused)
             const [showCoinFlipBanner, setShowCoinFlipBanner] = React.useState(false);
             const [coinFlipResult, setCoinFlipResult] = React.useState('');
             const [coinFlipType, setCoinFlipType] = React.useState(''); // 'turn' or 'confusion'
 
-            // Nuovo stato per i risultati dei dadi lanciati per ATTACCA
+            // New state for ATTACK dice roll results
             const [attackDiceResults, setAttackDiceResults] = React.useState([]);
-            // Nuovo stato per i risultati dei dadi lanciati per RITIRATA
+            // New state for RETREAT dice roll results
             const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
+            // New state for CAPTURE dice roll results
+            const [captureDiceResults, setCaptureDiceResults] = React.useState([]);
 
-            // Stato per il dado di movimento
+            // State for movement die
             const [movementDiceResult, setMovementDiceResult] = React.useState(null);
             const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
 
-            // Stato per il banner grande dei dadi (Attacca/Ritirata)
+            // State for the large dice banner (Attack/Retreat/Capture initial roll)
             const [showGlobalDiceBanner, setShowGlobalDiceBanner] = React.useState(false);
             const [globalDiceBannerResults, setGlobalDiceBannerResults] = React.useState([]);
 
+            // New states for Capture Coin Flip Modal
+            const [showCaptureCoinFlipModal, setShowCaptureCoinFlipModal] = React.useState(false);
+            const [captureCoinFlipResult, setCaptureCoinFlipResult] = React.useState(null); // 'heads' or 'tails'
+            const [captureFinalOutcome, setCaptureFinalOutcome] = React.useState(null); // 'PRESO' or 'FALLITA'
 
-            // Effetto per salvare le carte in localStorage ogni volta che cambiano
+
+            // Effect to save cards to localStorage whenever they change
             React.useEffect(() => {
                 localStorage.setItem('gameCards', JSON.stringify(cards));
             }, [cards]);
 
-            // Effetto per salvare la valuta globale in localStorage ogni volta che cambia
+            // NEW: Effect to save boxCards to localStorage whenever they change
+            React.useEffect(() => {
+                localStorage.setItem('pokemonBoxCards', JSON.stringify(boxCards));
+            }, [boxCards]);
+
+            // Effect to save global currency to localStorage whenever it changes
             React.useEffect(() => {
                 localStorage.setItem('globalCurrency', globalCurrency.toString());
             }, [globalCurrency]);
 
-            // Effetto per salvare le medaglie in localStorage ogni volta che cambiano
+            // Effect to save Gym medals to localStorage whenever they change
             React.useEffect(() => {
-                localStorage.setItem('gameMedals', JSON.stringify(medals));
-            }, [medals]);
+                localStorage.setItem('gymMedals', JSON.stringify(gymMedals));
+            }, [gymMedals]);
 
-            // Effetto per salvare lo stato del turno in localStorage
+            // Effect to save Elite Four medals to localStorage whenever they change
+            React.useEffect(() => {
+                localStorage.setItem('eliteFourMedals', JSON.stringify(eliteFourMedals));
+            }, [eliteFourMedals]);
+
+            // Effect to save turn state to localStorage
             React.useEffect(() => {
                 localStorage.setItem('isMyTurn', JSON.stringify(isMyTurn));
             }, [isMyTurn]);
 
 
             /**
-             * Aggiorna i dati della carta in uno slot specifico.
-             * @param {number} index - L'indice dello slot della carta (0-5).
-             * @param {object | null} cardData - I nuovi dati della carta o null per pulire lo slot.
+             * Updates the card data in a specific slot.
+             * @param {number} index - The index of the card slot (0-5).
+             * @param {object | null} cardData - The new card data or null to clear the slot.
              */
             const updateCardInSlot = React.useCallback((index, cardData) => {
                 setCards(prevCards => {
@@ -1426,9 +2039,9 @@
             }, []); // No dependencies, as it sets state based on previous state
 
             /**
-             * Gestisce il toggle dello stato "attivo" per un Pokémon.
-             * Assicura che solo un Pokémon sia attivo alla volta.
-             * @param {number} clickedSlotIndex - L'indice dello slot cliccato.
+             * Handles toggling the "active" status for a Pokémon.
+             * Ensures that only one Pokémon is active at a time.
+             * @param {number} clickedSlotIndex - The index of the clicked slot.
              */
             const handleActivePokemonToggle = React.useCallback((clickedSlotIndex) => {
                 // Determine the currently active card for status checks BEFORE state update
@@ -1437,7 +2050,7 @@
                 // If there's an active card and it's Paralized and it's My Turn, prevent switching
                 if (isMyTurn && currentActiveCard && currentActiveCard.statuses[3]) { // statuses[3] is Paralizzato
                     console.log("Cannot change active Pokémon while current active is Paralizzato on your turn.");
-                    return; 
+                    return; // Block the action
                 }
 
                 setCards(prevCards => {
@@ -1470,38 +2083,47 @@
             }, [isMyTurn, cards]); // Added cards to dependencies for activeCard check
 
 
-            // Gestisce il cambiamento manuale dell'input della valuta globale
+            // Handles manual change of global currency input
             const handleGlobalCurrencyChange = (event) => {
                 const value = parseInt(event.target.value) || 0;
                 setGlobalCurrency(value);
             };
 
-            // Gestisce l'incremento/decremento della valuta globale
+            // Handles incrementing/decrementing global currency
             const adjustGlobalCurrency = (amount) => {
                 setGlobalCurrency(prevCurrency => Math.max(0, prevCurrency + amount));
             };
 
-            // Toggle lo stato di una medaglia
-            const toggleMedal = (index) => {
-                setMedals(prevMedals => {
+            // Toggles the state of a Gym medal
+            const toggleGymMedal = (index) => {
+                setGymMedals(prevMedals => {
                     const newMedals = [...prevMedals];
                     newMedals[index] = !newMedals[index];
                     return newMedals;
                 });
             };
 
-            // Determina se il lancio dei dadi deve essere disabilitato (se il Pokémon attivo è addormentato o paralizzato)
+            // Toggles the state of an Elite Four medal
+            const toggleEliteFourMedal = (index) => {
+                setEliteFourMedals(prevMedals => {
+                    const newMedals = [...prevMedals];
+                    newMedals[index] = !newMedals[index];
+                    return newMedals;
+                });
+            };
+
+            // Determines if dice roll should be disabled (if active Pokémon is asleep or paralyzed)
             const activeCardForDice = cards.find(card => card && card.isActivePokemon); // Use a new const to avoid confusion with activeCard in toggleMyTurn
             const getDiceRollDisableStatus = () => {
                 if (!activeCardForDice) return false;
-                if (activeCardForDice.statuses[0]) return 'asleep'; // Addormentato
-                if (activeCardForDice.statuses[2]) return 'confused'; // Confuso
+                if (activeCardForDice.statuses[0]) return 'asleep'; // Asleep
+                if (activeCardForDice.statuses[2]) return 'confused'; // Confused
                 if (activeCardForDice.statuses[3]) return 'paralyzed'; // Paralizzato - NEW
                 return false;
             };
             const diceRollDisableStatus = getDiceRollDisableStatus();
 
-            // Funzione per gestire il lancio della moneta per lo stato "Confuso"
+            // Function to handle coin flip for "Confused" status
             const handleConfusedRollAttempt = React.useCallback(async () => {
                 // Perform coin flip
                 const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
@@ -1532,19 +2154,19 @@
             }, [activeCardForDice, cards]); // Dependencies: activeCardForDice, cards for setCards
 
 
-            // Toggle lo stato del turno E gestisce le condizioni di stato
+            // Toggles turn state AND handles status conditions
             const toggleMyTurn = React.useCallback(() => { // Made useCallback
                 setIsMyTurn(prevIsMyTurn => {
                     const newTurnState = !prevIsMyTurn;
                     const currentActiveCardInTurn = cards.find(card => card && card.isActivePokemon); // Get active card at the moment of turn toggle
 
-                    // Logica per lo stato "Paralizzato" quando il turno passa all'avversario - NEW
-                    if (!newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[3]) { // Se diventa il turno dell'avversario E il Pokémon attivo è Paralizzato
+                    // Logic for "Paralyzed" status when turn passes to opponent - NEW
+                    if (!newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[3]) { // If it becomes opponent's turn AND active Pokémon is Paralizzato
                         setCards(prevCards => {
                             return prevCards.map((card, idx) => {
                                 if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { // Ensure we modify the *correct* active card
                                     const newStatuses = [...card.statuses];
-                                    newStatuses[3] = false; // Deseleziona Paralizzato
+                                    newStatuses[3] = false; // Deselect Paralizzato
                                     return { ...card, statuses: newStatuses };
                                 }
                                 return card;
@@ -1552,42 +2174,42 @@
                         });
                     }
 
-                    // Logica del lancio della moneta per stato "Addormentato"
-                    // La moneta viene lanciata solo se c'è un Pokémon attivo E se è Addormentato
+                    // Coin flip logic for "Asleep" status
+                    // Coin is flipped only if there is an active Pokémon AND if it is Asleep
                     if (currentActiveCardInTurn && currentActiveCardInTurn.statuses[0]) { 
                         const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
                         setCoinFlipResult(result);
                         setCoinFlipType('turn'); // Indicate it's a turn flip
                         setShowCoinFlipBanner(true);
 
-                        // Nasconde il banner dopo 3 secondi
+                        // Hide banner after 3 seconds
                         setTimeout(() => {
                             setShowCoinFlipBanner(false);
                             setCoinFlipType('');
                         }, 3000);
 
-                        // Applica l'effetto del lancio della moneta sul Pokémon attivo "Addormentato"
+                        // Apply coin flip effect to active "Asleep" Pokémon
                         if (result === 'Testa') {
                             setCards(prevCards => {
                                 return prevCards.map((card, idx) => {
-                                    if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { // Trova il Pokémon attivo
+                                    if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { // Find the active Pokémon
                                         const newStatuses = [...card.statuses];
-                                        newStatuses[0] = false; // Deseleziona Addormentato (si sveglia)
+                                        newStatuses[0] = false; // Deselect Asleep (wakes up)
                                         return { ...card, statuses: newStatuses };
                                     }
                                     return card;
                                 });
                             });
                         }
-                        // Se esce 'Croce', il Pokémon Addormentato rimane Addormentato, quindi non facciamo nulla qui.
+                        // If 'Croce' comes up, the Asleep Pokémon remains Asleep, so we do nothing here.
                     } else {
-                        // Se non c'è un Pokémon attivo addormentato, assicurati che il banner della moneta sia nascosto
+                        // If there is no active asleep Pokémon, ensure the coin banner is hidden
                         setShowCoinFlipBanner(false);
                         setCoinFlipType('');
                     }
 
-                    // Logica del danno da bruciatura (solo quando diventa il tuo turno)
-                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[1]) { // Se diventa il tuo turno E il Pokémon attivo è Bruciato (index 1)
+                    // Burn damage logic (only when it becomes your turn)
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[1]) { // If it becomes your turn AND active Pokémon is Burned (index 1)
                         setCards(prevCards => {
                             return prevCards.map((card, idx) => {
                                 if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
@@ -1599,12 +2221,12 @@
                         });
                     }
 
-                    // Logica del danno da avvelenamento (solo quando diventa il tuo turno)
-                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[4]) { // Se diventa il tuo turno E il Pokémon attivo è Avvelenato (index 4)
+                    // Poison damage logic (only when it becomes your turn)
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[4]) { // If it becomes your turn AND active Pokémon is Poisoned (index 4)
                         setCards(prevCards => {
                             return prevCards.map((card, idx) => {
                                 if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
-                                    const newDamageTaken = card.damageTaken + 10; // 10 danni per avvelenamento
+                                    const newDamageTaken = card.damageTaken + 10; // 10 damage for poison
                                     return { ...card, damageTaken: newDamageTaken };
                                 }
                                 return card;
@@ -1616,15 +2238,18 @@
                     if (newTurnState) { // If it's becoming MY turn
                         setAttackDiceResults([]); // Clear results for Attack dice
                         // Not clearing retreatDiceResults here, as per previous instruction to keep them visible during opponent's turn.
+                        setCaptureDiceResults([]); // Clear capture dice results
+                        setCaptureCoinFlipResult(null); // Clear capture coin result
+                        setCaptureFinalOutcome(null); // Clear capture final outcome
                     } else { // If it's becoming OPPONENT's turn, clear retreat dice
                         setRetreatDiceResults([]);
                     }
 
                     return newTurnState;
                 });
-            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults]); // Added setAttackDiceResults, setRetreatDiceResults to dependencies
+            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults, setCaptureDiceResults, setCaptureCoinFlipResult, setCaptureFinalOutcome]); // Added capture related states to dependencies
 
-            // Funzione per gestire il lancio del dado di movimento
+            // Function to handle movement die roll
             const handleRollMovementDice = React.useCallback(() => {
                 const roll = Math.floor(Math.random() * 6) + 1;
                 setMovementDiceResult(roll);
@@ -1636,128 +2261,241 @@
                 }, 5000); // 5 seconds
             }, []);
 
-            // Funzione per gestire la visualizzazione del banner grande dei dadi (Attacca/Ritirata)
+            // Function to handle displaying the large dice banner (Attack/Retreat/Capture initial roll)
             const handleDisplayDiceBanner = React.useCallback((results) => {
                 setGlobalDiceBannerResults(results);
                 setShowGlobalDiceBanner(true);
                 setTimeout(() => {
                     setShowGlobalDiceBanner(false);
                     setGlobalDiceBannerResults([]);
-                }, 3000); // Banner visibile per 3 secondi
+                }, 3000); // Banner visible for 3 seconds
+            }, []);
+
+            // Function to handle when a capture dice roll indicates a coin flip is needed
+            const handleCaptureCoinFlipNeeded = React.useCallback(() => {
+                setShowCaptureCoinFlipModal(true);
+                setCaptureCoinFlipResult(null); // Reset coin flip result
+                setCaptureFinalOutcome(null); // Reset final outcome
+            }, []);
+
+            // Function to perform the capture coin flip
+            const performCaptureCoinFlip = React.useCallback(() => {
+                const result = Math.random() < 0.5 ? 'heads' : 'tails';
+                setCaptureCoinFlipResult(result);
+                const final = result === 'tails' ? 'PRESO' : 'FALLITA';
+                setCaptureFinalOutcome(final);
+
+                // Close modal and end turn after a short delay to show result
+                setTimeout(() => {
+                    setShowCaptureCoinFlipModal(false);
+                    toggleMyTurn(); // End the turn
+                }, 2000); // Show result for 2 seconds
+            }, [toggleMyTurn]);
+
+            // NEW: Function to send a card from a slot to the box
+            const sendCardToBox = React.useCallback((cardToBox, slotIndex) => {
+                setBoxCards(prevBoxCards => [...prevBoxCards, cardToBox]);
+                updateCardInSlot(slotIndex, null); // Clear the slot after sending to box
+            }, [updateCardInSlot]);
+
+            // NEW: Function to recall a card from the box and place it into a slot
+            // Modified to also handle deletion from BoxView/RecallFromBoxModal
+            const recallCardFromBox = React.useCallback((selectedCard, targetSlotIndex, boxCardIndex, isDeleteOnly = false) => {
+                if (isDeleteOnly) {
+                    setBoxCards(prevBoxCards => {
+                        const newBoxCards = [...prevBoxCards];
+                        newBoxCards.splice(boxCardIndex, 1); // Remove the card by its index
+                        return newBoxCards;
+                    });
+                } else {
+                    // 1. Place the selected card into the target slot
+                    updateCardInSlot(targetSlotIndex, {
+                        imageUrl: selectedCard.imageUrl,
+                        baseHp: selectedCard.baseHp,
+                        damageTaken: 0, // Reset damage when recalling from box
+                        statuses: Array(5).fill(false), // Reset statuses when recalling from box
+                        exp: selectedCard.exp,
+                        isActivePokemon: false // Not active by default when recalled
+                    });
+
+                    // 2. Remove the card from the box
+                    setBoxCards(prevBoxCards => {
+                        const newBoxCards = [...prevBoxCards];
+                        newBoxCards.splice(boxCardIndex, 1); // Remove the card by its index
+                        return newBoxCards;
+                    });
+                }
+            }, [updateCardInSlot, setBoxCards]);
+
+            // NEW: Function to delete a card directly from the box (used by BoxView)
+            const deleteCardFromBox = React.useCallback((indexToDelete) => {
+                setBoxCards(prevBoxCards => {
+                    return prevBoxCards.filter((_, i) => i !== indexToDelete);
+                });
             }, []);
 
 
             return (
-                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4 relative">
-                    {/* Controlli Superiori: Tutti impilati verticalmente per schermi stretti */}
-                    <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
-                        {/* Indicatore di Turno */}
-                        <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
+                <>
+                    {currentView === 'main' && (
+                        <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4 relative">
+                            {/* Top Controls: All stacked vertically for narrow screens */}
+                            <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
+                                {/* Turn Indicator */}
+                                <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
 
-                        {/* Contenitore per i dadi ATTACCA e RITIRATA (ora verticali) */}
-                        <div className="flex flex-col items-center gap-4 w-full">
-                            {/* Lancia Dadi ATTACCA */}
-                            <DiceRoller
-                                title="ATTACCA"
-                                isAttackRoller={true}
-                                isDiceRollDisabled={diceRollDisableStatus}
-                                onConfusedRollAttempt={handleConfusedRollAttempt}
-                                isMyTurn={isMyTurn}
-                                onDiceRollComplete={toggleMyTurn}
-                                results={attackDiceResults}
-                                onSetResults={setAttackDiceResults}
-                                onDisplayResultsForBanner={handleDisplayDiceBanner}
-                            />
-                            {/* Lancia Dadi RITIRATA */}
-                            <DiceRoller
-                                title="RITIRATA"
-                                isAttackRoller={false}
-                                results={retreatDiceResults}
-                                onSetResults={setRetreatDiceResults}
-                                onDisplayResultsForBanner={handleDisplayDiceBanner}
-                            />
-                        </div>
-                        
-                        {/* Dado Movimento */}
-                        <MovementDiceRoller onRoll={handleRollMovementDice} />
+                                {/* Container for ATTACK, RETREAT and CAPTURE dice (now vertical) */}
+                                <div className="flex flex-col items-center gap-4 w-full">
+                                    {/* Roll ATTACK Dice */}
+                                    <DiceRoller
+                                        title="ATTACCA"
+                                        isAttackRoller={true}
+                                        isDiceRollDisabled={diceRollDisableStatus}
+                                        onConfusedRollAttempt={handleConfusedRollAttempt}
+                                        isMyTurn={isMyTurn}
+                                        onDiceRollComplete={toggleMyTurn}
+                                        results={attackDiceResults}
+                                        onSetResults={setAttackDiceResults}
+                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                    />
+                                    {/* Roll RETREAT Dice */}
+                                    <DiceRoller
+                                        title="RITIRATA"
+                                        isAttackRoller={false}
+                                        results={retreatDiceResults}
+                                        onSetResults={setRetreatDiceResults}
+                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        onDiceRollComplete={toggleMyTurn} /* Added for Retreat to end turn */
+                                        isMyTurn={isMyTurn} /* Pass isMyTurn to DiceRoller */
+                                    />
+                                    {/* Roll CAPTURA Dice */}
+                                    <DiceRoller
+                                        title="CATTURA"
+                                        isAttackRoller={false} /* Not an attack roller */
+                                        isCaptureRoller={true} /* New prop for capture logic */
+                                        results={captureDiceResults}
+                                        onSetResults={setCaptureDiceResults}
+                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        onDiceRollComplete={toggleMyTurn} /* For immediate fail, otherwise handled by coin flip */
+                                        onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded} /* New prop for coin flip trigger */
+                                        isMyTurn={isMyTurn} /* Pass isMyTurn to DiceRoller */
+                                    />
+                                </div>
+                                
+                                {/* Movement Die */}
+                                <MovementDiceRoller onRoll={handleRollMovementDice} />
 
-                        {/* Contatore di Valuta Globale */}
-                        <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
-                            <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
-                            <button
-                                onClick={() => adjustGlobalCurrency(-1)}
-                                className="btn-theme btn-red px-2 py-0.5 text-base"
-                            >
-                                -
-                            </button>
-                            <input
-                                type="number"
-                                value={globalCurrency}
-                                onChange={handleGlobalCurrencyChange}
-                                className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner"
-                                min="0"
-                            />
-                            <button
-                                onClick={() => adjustGlobalCurrency(1)}
-                                className="btn-theme btn-green px-2 py-0.5 text-base"
-                            >
-                                +
-                            </button>
-                        </div>
+                                {/* Global Currency Counter */}
+                                <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
+                                    <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
+                                    <button
+                                        onClick={() => adjustGlobalCurrency(-1)}
+                                        className="btn-theme btn-red px-2 py-0.5 text-base"
+                                    >
+                                        -
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={globalCurrency}
+                                        onChange={handleGlobalCurrencyChange}
+                                        className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner"
+                                        min="0"
+                                    />
+                                    <button
+                                        onClick={() => adjustGlobalCurrency(1)}
+                                        className="btn-theme btn-green px-2 py-0.5 text-base"
+                                        >
+                                        +
+                                    </button>
+                                </div>
 
-                        {/* Banner del lancio della moneta (per turno o confusione) */}
-                        {showCoinFlipBanner && (
-                            <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
-                                {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
+                                {/* NEW: Button to go to Box - Moved here */}
+                                <button
+                                    onClick={() => setCurrentView('box')}
+                                    className="btn-theme btn-purple px-6 py-3 text-lg mt-4" /* Added mt-4 for spacing */
+                                >
+                                    VAI AL BOX ({boxCards.length})
+                                </button>
+
+                                {/* Coin flip banner (for turn or confusion) */}
+                                {showCoinFlipBanner && (
+                                    <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
+                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    {/* Banner grande per il dado di Movimento */}
-                    {showMovementDiceBanner && movementDiceResult && (
-                        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                            <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
-                                {diceFaces[movementDiceResult]}
-                            </div>
-                        </div>
-                    )}
+                            {/* Large banner for Movement die */}
+                            {showMovementDiceBanner && movementDiceResult && (
+                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
+                                        {diceFaces[movementDiceResult]}
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Banner grande per i dadi di ATTACCA/RITIRATA */}
-                    {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
-                        <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                            <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
-                                {globalDiceBannerResults.map((result, index) => (
-                                    <span key={index}>{diceFaces[result]}</span>
+                            {/* Large banner for ATTACK/RETREAT/CAPTURE initial dice roll */}
+                            {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
+                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
+                                        {globalDiceBannerResults.map((result, index) => (
+                                            <span key={index}>{diceFaces[result]}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Capture Coin Flip Modal */}
+                            <CaptureCoinFlipModal
+                                isOpen={showCaptureCoinFlipModal}
+                                onFlipCoin={performCaptureCoinFlip}
+                                coinResult={captureCoinFlipResult}
+                                finalOutcome={captureFinalOutcome}
+                            />
+
+                            {/* Container for card slots */}
+                            {/* Always a column for vertical screens */}
+                            <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
+                                {cards.map((cardData, index) => (
+                                    <CardSlot
+                                        key={index} 
+                                        slotIndex={index}
+                                        cardData={cardData} 
+                                        onUpdateCard={updateCardInSlot}
+                                        onToggleActivePokemon={handleActivePokemonToggle} 
+                                        isMyTurn={isMyTurn} 
+                                        activeCardParalyzed={isMyTurn && activeCardForDice && activeCardForDice.statuses[3]}
+                                        onSendToBox={sendCardToBox} /* Pass the new function */
+                                        onRecallFromBox={recallCardFromBox} /* Pass the new recall function */
+                                        boxCards={boxCards} /* Pass boxCards for the recall modal */
+                                    />
                                 ))}
                             </div>
+
+                            {/* Container for Gym Medals in the bottom of the page */}
+                            <div className="w-full flex justify-center mt-8">
+                                <MedalDisplay gymMedals={gymMedals} onToggleMedal={toggleGymMedal} />
+                            </div>
+
+                            {/* Container for Elite Four Medals */}
+                            <div className="w-full flex justify-center mt-8 pb-20"> {/* Increased pb-20 for more space */}
+                                <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={toggleEliteFourMedal} />
+                            </div>
                         </div>
                     )}
 
-                    {/* Contenitore per gli slot delle carte */}
-                    {/* Sempre una colonna per schermi verticali */}
-                    <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
-                        {cards.map((cardData, index) => (
-                            <CardSlot
-                                key={index} 
-                                slotIndex={index}
-                                cardData={cardData} 
-                                onUpdateCard={updateCardInSlot}
-                                onToggleActivePokemon={handleActivePokemonToggle} 
-                                isMyTurn={isMyTurn} 
-                                activeCardParalyzed={isMyTurn && activeCardForDice && activeCardForDice.statuses[3]} 
-                            />
-                        ))}
-                    </div>
-
-                    {/* Contenitore per le Medaglie in fondo alla pagina */}
-                    <div className="w-full flex justify-center mt-8 pb-4">
-                        <MedalDisplay medals={medals} onToggleMedal={toggleMedal} />
-                    </div>
-                </div>
+                    {currentView === 'box' && (
+                        <BoxView 
+                            boxCards={boxCards} 
+                            onBackToMain={() => setCurrentView('main')} 
+                            onDeleteCardFromBox={deleteCardFromBox} /* Pass the new delete function */
+                        />
+                    )}
+                </>
             );
         }
 
-        // Renderizza il componente App di React nell'elemento 'root'
+        // Render the React App component in the 'root' element
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
