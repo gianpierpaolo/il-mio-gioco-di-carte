@@ -396,18 +396,13 @@
     <!-- Supabase Client Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-   <script type="text/babel">
+    <script type="text/babel">
         // Your Supabase credentials
-        const SUPABASE_URL = 'https://wcarhpvygqbjekacizlb.supabase.co'; // Assicurati che questo URL sia quello del tuo progetto Supabase
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjYXJocHZ5Z3FiamVrYWNpembiLCJyb2xlIjoiYW5vbiIsImiaWF0IjoxNzU0NDkwMzE2LCJleHAiOjIwNzAwNjYzMTZ9.xc7_wXB16kaAVOdcucP_7zzvUQ8f2S6IYKBjIs0ffEU'; // <<< INSERISCI QUI LA TUA VERA CHIAVE SUPABASE ANON KEY (PUBLIC) DA projects.supabase.com -> Project Settings -> API Keys
+        const SUPABASE_URL = 'https://wcarhpvygqbjekacizlb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjYXJocHZ5Z3FiamVrYWNpemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTAzMTYsImV4cCI6MjA3MDA2NjMxNn0.xc7_wXB16kaAVOdcucP_7zzvUQ8f2S6IYKBjIs0ffEU';
 
         // Initialize the Supabase client using the global 'supabase' object from the CDN
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Aggiungi un controllo per avvisare l'utente se la chiave API sembra generica
-        if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjYXJocHZ5Z3FiamVrYWNpembiLCJyb2xlIjoiYW5vbiIsImiaWF0IjoxNzU0NDkwMzE2LCJleHAiOjIwNzAwNjYzMTZ9.xc7_wXB16kaAVOdcucP_7zzvUQ8f2S6IYKBjIs0ffEU') {
-            console.warn("ATTENZIONE: Stai utilizzando una chiave API Supabase anonima/pubblica di esempio. Per evitare errori 'Invalid API key' e connetterti al TUO database, sostituisci 'SUPABASE_ANON_KEY' con la chiave 'anon (Public)' dal pannello di controllo del tuo progetto Supabase (sezioni 'Project Settings' -> 'API Keys').");
-        }
 
 
         // Mapping numbers to dice symbols (emoji) - Global for accessibility
