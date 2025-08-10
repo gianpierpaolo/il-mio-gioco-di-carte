@@ -33,7 +33,7 @@
             background-color: #333;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -392,9 +392,23 @@
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script type="text/babel">
-        // All React component definitions are here within a single script block
-        // to ensure Babel can correctly parse JSX and JS.
+    
+    <!-- Supabase Client Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+   <script type="text/babel">
+        // Your Supabase credentials
+        const SUPABASE_URL = 'https://wcarhpvygqbjekacizlb.supabase.co'; // Assicurati che questo URL sia quello del tuo progetto Supabase
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjYXJocHZ5Z3FiamVrYWNpemxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0OTAzMTYsImV4cCI6MjA3MDA2NjMxNn0.xc7_wXB16kaAVOdcucP_7zzvUQ8f2S6IYKBjIs0ffEU'; // <<< INSERISCI QUI LA TUA VERA CHIAVE SUPABASE ANON KEY (PUBLIC) DA projects.supabase.com -> Project Settings -> API Keys
+
+        // Initialize the Supabase client using the global 'supabase' object from the CDN
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Aggiungi un controllo per avvisare l'utente se la chiave API sembra generica
+        if (SUPABASE_ANON_KEY === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjYXJocHZ5Z3FiamVrYWNpembiLCJyb2xlIjoiYW5vbiIsImiaWF0IjoxNzU0NDkwMzE2LCJleHAiOjIwNzAwNjYzMTZ9.xc7_wXB16kaAVOdcucP_7zzvUQ8f2S6IYKBjIs0ffEU') {
+            console.warn("ATTENZIONE: Stai utilizzando una chiave API Supabase anonima/pubblica di esempio. Per evitare errori 'Invalid API key' e connetterti al TUO database, sostituisci 'SUPABASE_ANON_KEY' con la chiave 'anon (Public)' dal pannello di controllo del tuo progetto Supabase (sezioni 'Project Settings' -> 'API Keys').");
+        }
+
 
         // Mapping numbers to dice symbols (emoji) - Global for accessibility
         const diceFaces = {
@@ -405,6 +419,22 @@
             5: '⚄',
             6: '⚅',
         };
+
+        // Local fallback/example database of Pokémon cards.
+        // This will be used if Supabase data is not yet loaded or if Supabase setup fails.
+        const localPokemonCardsDatabase = [
+            { id: 'db-local-001', name: 'Pikachu', imageUrl: 'https://placehold.co/192x256/FFD700/000000?text=Pikachu', baseHp: 60, exp: 0 },
+            { id: 'db-local-002', name: 'Charmander', imageUrl: 'https://placehold.co/192x256/FF4500/FFFFFF?text=Charmander', baseHp: 50, exp: 0 },
+            { id: 'db-local-003', name: 'Squirtle', imageUrl: 'https://placehold.co/192x256/1E90FF/FFFFFF?text=Squirtle', baseHp: 60, exp: 0 },
+            { id: 'db-local-004', name: 'Bulbasaur', imageUrl: 'https://placehold.co/192x256/7CFC00/000000?text=Bulbasaur', baseHp: 70, exp: 0 },
+            { id: 'db-local-005', name: 'Jigglypuff', imageUrl: 'https://placehold.co/192x256/FF69B4/000000?text=Jigglypuff', baseHp: 80, exp: 0 },
+            { id: 'db-local-006', name: 'Meowth', imageUrl: 'https://placehold.co/192x256/A9A9A9/000000?text=Meowth', baseHp: 70, exp: 0 },
+            { id: 'db-local-007', name: 'Psyduck', imageUrl: 'https://placehold.co/192x256/ADD8E6/000000?text=Psyduck', baseHp: 80, exp: 0 },
+            { id: 'db-local-008', name: 'Snorlax', imageUrl: 'https://placehold.co/192x256/6A5ACD/FFFFFF?text=Snorlax', baseHp: 120, exp: 0 },
+            { id: 'db-local-009', name: 'Eevee', imageUrl: 'https://placehold.co/192x256/CD853F/FFFFFF?text=Eevee', baseHp: 60, exp: 0 },
+            { id: 'db-local-010', name: 'Mewtwo', imageUrl: 'https://placehold.co/192x256/8A2BE2/FFFFFF?text=Mewtwo', baseHp: 130, exp: 0 },
+            // Aggiungi qui altre carte di esempio locali se necessario
+        ];
 
         // CameraModal Component
         // Modal for camera access and image capture.
@@ -481,7 +511,7 @@
                     const settings = videoTrack.getSettings();
                     setIsFrontCamera(settings.facingMode === 'user');
 
-                } catch (err) {
+                } catch (err) { // Correctly placed catch block for the try
                     console.error("Error accessing camera with deviceId:", deviceIdToUse, err);
                     setCameraStatusMessage("Errore nell'accesso alla fotocamera.");
                     if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
@@ -645,7 +675,7 @@
                                 <select
                                     id="camera-select"
                                     value={selectedCameraId || ''}
-                                    onChange={(e) => setSelectedCameraId(e.target.value)}
+                                    onChange={(e) => e.stopPropagation() || setSelectedCameraId(e.target.value)}
                                     className="block w-full p-2 rounded-md bg-gray-600 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     {availableCameras.map(camera => (
@@ -754,7 +784,7 @@
                                             onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/96x128/444/bbb?text=Errore"; }}
                                         />
                                         <p className="text-gray-300 text-xs">HP: {card.baseHp}</p>
-                                        <p className="text-gray-300 text-xs">EXP: {card.exp}</p>
+                                        {/* Removed EXP from Box View */}
                                         <button
                                             onClick={(e) => handleDeleteClick(index, e)}
                                             className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-700"
@@ -800,8 +830,192 @@
             );
         }
 
+        // NEW: SelectFromDatabaseModal Component
+        // This component now accepts a 'cardsData' prop which will be either pokemonDbCards or trainersDbCards
+        function SelectFromDatabaseModal({ isOpen, onClose, onSelectCardFromDatabase, cardsData, isLoading, error }) {
+            const [searchTerm, setSearchTerm] = React.useState('');
+            
+            const cardsToDisplay = searchTerm 
+                ? cardsData.filter(card => card.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                : cardsData;
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="zoom-modal-overlay">
+                    <div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-yellow-400 flex flex-col items-center">
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-4">Seleziona dal Database</h2>
+                        <input
+                            type="text"
+                            placeholder="Cerca carta..."
+                            className="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {isLoading && <p className="text-blue-300 text-lg mb-4">Caricamento carte...</p>}
+                        {error && <p className="text-red-500 text-lg mb-4">Errore: {error}</p>}
+                        
+                        {!isLoading && !error && cardsToDisplay.length === 0 && (
+                            <p className="text-gray-400 text-lg col-span-full">Nessuna carta trovata. Assicurati che il database contenga carte o prova a cercare un altro nome.</p>
+                        )}
+
+                        {!isLoading && !error && cardsToDisplay.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-80vh p-2">
+                                {cardsToDisplay.map((card) => (
+                                    <div
+                                        key={card.id}
+                                        className="bg-gray-700 p-2 rounded-lg shadow-md border border-gray-600 cursor-pointer hover:bg-gray-600 transition-colors flex flex-col items-center"
+                                        onClick={() => onSelectCardFromDatabase(card)}
+                                    >
+                                        <img
+                                            src={card.imageUrl} 
+                                            alt={card.name}
+                                            className="w-24 h-32 object-cover rounded-md border border-gray-500 mb-1"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/96x128/444/bbb?text=Errore"; }}
+                                        />
+                                        <p className="text-gray-300 text-xs font-semibold">{card.name}</p>
+                                        {/* Only show HP if it's a Pokemon card (baseHp > 0 or defined) */}
+                                        {card.baseHp !== undefined && card.baseHp > 0 && (
+                                            <p className="text-gray-400 text-xs">HP: {card.baseHp}</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="btn-theme btn-red mt-6 px-6 py-2 text-lg"
+                        >
+                            Chiudi
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // NEW: SelectFromSupabaseTableModal Component
+        function SelectFromSupabaseTableModal({ isOpen, onClose, onSelectTableAndFetchRandom }) {
+            const tableOptions = ['rosa', 'verde', 'blu', 'giallo', 'rosso', 'oro'];
+            const [selectedTable, setSelectedTable] = React.useState('');
+            const [isLoadingRandomCard, setIsLoadingRandomCard] = React.useState(false);
+            const [randomCardError, setRandomCardError] = React.useState(null);
+
+            const handleSelect = async () => {
+                if (selectedTable) {
+                    setIsLoadingRandomCard(true);
+                    setRandomCardError(null);
+                    try {
+                        await onSelectTableAndFetchRandom(selectedTable);
+                        onClose(); // Close modal on success
+                    } catch (error) {
+                        console.error("Errore nel recupero della carta casuale dalla tabella:", error);
+                        setRandomCardError("Errore nel recupero della carta casuale: " + error.message);
+                    } finally {
+                        setIsLoadingRandomCard(false);
+                    }
+                }
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="zoom-modal-overlay">
+                    <div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-yellow-400 flex flex-col items-center">
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-4">Scegli Tabella per Carta Casuale</h2>
+                        <select
+                            value={selectedTable}
+                            onChange={(e) => e.stopPropagation() || setSelectedTable(e.target.value)}
+                            className="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Seleziona una tabella</option>
+                            {tableOptions.map(table => (
+                                <option key={table} value={table}>{table.charAt(0).toUpperCase() + table.slice(1)}</option>
+                            ))}
+                        </select>
+
+                        <button
+                            onClick={handleSelect}
+                            className="btn-theme btn-green px-6 py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!selectedTable || isLoadingRandomCard}
+                        >
+                            {isLoadingRandomCard ? 'Caricamento...' : 'Scegli e Carica Casuale'}
+                        </button>
+
+                        {randomCardError && <p className="text-red-500 mt-4">{randomCardError}</p>}
+
+                        <button
+                            onClick={onClose}
+                            className="btn-theme btn-red mt-6 px-6 py-2 text-lg"
+                        >
+                            Annulla
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // NEW: SelectFromPalestreModal Component
+        function SelectFromPalestreModal({ isOpen, onClose, onSelectCardFromPalestre, cardsData, isLoading, error }) {
+            const [searchTerm, setSearchTerm] = React.useState('');
+            
+            const cardsToDisplay = searchTerm 
+                ? cardsData.filter(card => card.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                : cardsData;
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="zoom-modal-overlay">
+                    <div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-yellow-400 flex flex-col items-center">
+                        <h2 className="text-2xl font-bold text-yellow-300 mb-4">Seleziona dal Database Palestre</h2>
+                        <input
+                            type="text"
+                            placeholder="Cerca carta palestra..."
+                            className="w-full p-2 rounded-md bg-gray-700 text-white border border-gray-600 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {isLoading && <p className="text-blue-300 text-lg mb-4">Caricamento carte palestra...</p>}
+                        {error && <p className="text-red-500 text-lg mb-4">Errore: {error}</p>}
+                        
+                        {!isLoading && !error && cardsToDisplay.length === 0 && (
+                            <p className="text-gray-400 text-lg col-span-full">Nessuna carta palestra trovata. Assicurati che il database contenga carte o prova a cercare un altro nome.</p>
+                        )}
+
+                        {!isLoading && !error && cardsToDisplay.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 overflow-y-auto max-h-80vh p-2">
+                                {cardsToDisplay.map((card) => (
+                                    <div
+                                        key={card.id}
+                                        className="bg-gray-700 p-2 rounded-lg shadow-md border border-gray-600 cursor-pointer hover:bg-gray-600 transition-colors flex flex-col items-center"
+                                        onClick={() => onSelectCardFromPalestre(card)}
+                                    >
+                                        <img
+                                            src={card.imageUrl} 
+                                            alt={card.name}
+                                            className="w-24 h-32 object-cover rounded-md border border-gray-500 mb-1"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/96x128/444/bbb?text=Errore"; }}
+                                        />
+                                        <p className="text-gray-300 text-xs font-semibold">{card.name}</p>
+                                        {/* Palestre cards typically don't have HP/EXP, so no need to display them */}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="btn-theme btn-red mt-6 px-6 py-2 text-lg"
+                        >
+                            Chiudi
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+
         // NEW: AddCardChoiceModal Component
-        function AddCardChoiceModal({ isOpen, onClose, onChooseNew, onChooseFromBox }) {
+        function AddCardChoiceModal({ isOpen, onClose, onChooseNew, onChooseFromBox, onChooseFromDatabase, onChooseFromSupabaseTable, onChooseFromPalestre }) {
             if (!isOpen) return null;
 
             return (
@@ -821,6 +1035,24 @@
                             >
                                 Scegli dal Box 📦
                             </button>
+                            <button
+                                onClick={onChooseFromDatabase}
+                                className="btn-theme btn-yellow px-6 py-3 text-lg"
+                            >
+                                Scegli dal Database 📚
+                            </button>
+                            <button
+                                onClick={onChooseFromSupabaseTable} /* New button */
+                                className="btn-theme btn-orange px-6 py-3 text-lg"
+                            >
+                                Casuale da Tabella 🎲
+                            </button>
+                            <button
+                                onClick={onChooseFromPalestre} /* New button for Palestre */
+                                className="btn-theme btn-purple px-6 py-3 text-lg"
+                            >
+                                Scegli da Palestre 🏛️
+                            </button>
                         </div>
                         <button
                             onClick={onClose}
@@ -835,19 +1067,19 @@
 
 
         // CardSlot component - Represents a single card slot
-        function CardSlot({ slotIndex, cardData, onUpdateCard, onToggleActivePokemon, isMyTurn, activeCardParalyzed, onSendToBox, onRecallFromBox, boxCards }) { // Added onSendToBox, onRecallFromBox, boxCards props
+        function CardSlot({ slotIndex, cardData, onUpdateCard, onToggleActivePokemon, isMyTurn, activeCardParalyzed, onSendToBox, onRecallFromBox, boxCards, pokemonDbCards, trainersDbCards, palestreDbCards, isDbLoading, dbError, onSelectTableAndFetchRandom, onSelectPalestreCard, role }) { // Added role prop
             // Internal state for Base HP, Damage Taken, statuses, card image, and experience points,
             // initialized from props or default values
             const [baseHp, setBaseHp] = React.useState(cardData ? cardData.baseHp : 0);
             const [damageTaken, setDamageTaken] = React.useState(cardData ? cardData.damageTaken : 0);
             const [statuses, setStatuses] = React.useState(cardData ? cardData.statuses : Array(5).fill(false));
             const [cardImage, setCardImage] = React.useState(cardData ? cardData.imageUrl : null);
-            const [currentExp, setCurrentExp] = React.useState(cardData ? cardData.exp : 0);
+            // Removed currentExp state
             const [isActivePokemon, setIsActivePokemon] = React.useState(cardData ? cardData.isActivePokemon : false); // New state for active Pokémon
 
             // State for the generic confirmation window and details of the action to confirm
-            const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
-            const [confirmAction, setConfirmAction] = React.useState(null); // { type: 'replace_image' | 'reset_full_slot' | 'send_to_box' | 'save_and_recall_from_box', imageUrl?: string }
+            const [isConfirmModalOpen, setIsConfirmModal] = React.useState(false);
+            const [confirmAction, setConfirmAction] = React.useState(null); // { type: 'replace_image' | 'reset_full_slot' | 'send_to_box' | 'save_and_recall_from_box' | 'save_and_select_from_db' | 'save_and_select_from_supabase_table' | 'save_and_select_from_palestre', imageUrl?: string, cardDetailsFromDb?: object }
 
             // Reference for the hidden file input element
             const fileInputRef = React.useRef(null);
@@ -859,6 +1091,12 @@
             const [showRecallFromBoxModal, setShowRecallFromBoxModal] = React.useState(false);
             // NEW: State for the add card choice modal
             const [showAddCardChoiceModal, setShowAddCardChoiceModal] = React.useState(false);
+            // NEW: State for select from database modal
+            const [showSelectFromDatabaseModal, setShowSelectFromDatabaseModal] = React.useState(false);
+            // NEW: State for select from Supabase Table modal
+            const [showSelectFromSupabaseTableModal, setShowSelectFromSupabaseTableModal] = React.useState(false);
+            // NEW: State for select from Palestre modal
+            const [showSelectFromPalestreModal, setShowSelectFromPalestreModal] = React.useState(false);
 
 
             // States for in-slot image zoom and pan
@@ -884,19 +1122,19 @@
                     setDamageTaken(cardData.damageTaken);
                     setStatuses(cardData.statuses);
                     setCardImage(cardData.imageUrl);
-                    setCurrentExp(cardData.exp);
+                    // Removed currentExp update
                     setIsActivePokemon(cardData.isActivePokemon); // Synchronize the new state
-                    // Apply initial zoom when a card is loaded
-                    setZoomLevel(1.0 + (5 * ZOOM_STEP)); // Changed from 4 to 5
-                    setPanX(0);
-                    setPanY(0);
+                    // Removed initial zoom when a card is loaded
+                    // setZoomLevel(1.0 + (5 * ZOOM_STEP)); 
+                    // setPanX(0);
+                    // setPanY(0);
                 } else {
                     // Reset internal state if cardData is null (clean slot)
                     setBaseHp(0);
                     setDamageTaken(0);
                     setStatuses(Array(5).fill(false));
                     setCardImage(null);
-                    setCurrentExp(0);
+                    // Removed currentExp reset
                     setIsActivePokemon(false); // Also reset active state
                     setZoomLevel(1.0); // Reset to default zoom for empty slot
                     setPanX(0);
@@ -905,16 +1143,17 @@
             }, [cardData]); // Dependency on cardData ensures this effect runs when cardData changes
 
             /**
-             * Updates the card data in the parent component.
-             * This function is called after each change to HP, Damage, statuses, EXP, or active status.
+             * Updates the card data in a specific slot.
+             * @param {number} index - The index of the card slot (0-5).
+             * @param {object | null} cardData - The new card data or null to clear the slot.
              */
-            const updateParentCardData = React.useCallback((newBaseHp, newDamageTaken, newStatuses, newImageUrl, newExp, newIsActivePokemon) => {
+            const updateParentCardData = React.useCallback((newBaseHp, newDamageTaken, newStatuses, newImageUrl, newExpValue, newIsActivePokemon) => { // newExpValue added
                 onUpdateCard(slotIndex, {
                     imageUrl: newImageUrl,
                     baseHp: newBaseHp,
                     damageTaken: newDamageTaken,
                     statuses: newStatuses,
-                    exp: newExp,
+                    exp: newExpValue, // Pass newExpValue
                     isActivePokemon: newIsActivePokemon // Include the new state
                 });
             }, [onUpdateCard, slotIndex]); // Add onUpdateCard and slotIndex to dependencies
@@ -924,14 +1163,18 @@
              * If an existing card is present, it shows a confirmation window.
              * Otherwise, it loads the image directly.
              * @param {string} imageUrl - The Data URL of the new image to load.
+             * @param {object} [cardDetailsFromDb] - Optional: { baseHp, exp } if from database.
              */
-            const handleNewImageSelection = (imageUrl) => {
+            const handleNewImageSelection = (imageUrl, cardDetailsFromDb = {}) => {
+                const expFromDb = cardDetailsFromDb.exp !== undefined ? cardDetailsFromDb.exp : (cardData ? cardData.exp : 0); // Preserve existing exp or default
                 if (cardImage) { // If an existing image, ask the user
-                    setConfirmAction({ type: 'replace_image', imageUrl: imageUrl }); // Does not include resetData here, we handle it in the modal
-                    setIsConfirmModalOpen(true);
+                    setConfirmAction({ type: 'replace_image', imageUrl: imageUrl, cardDetailsFromDb: { ...cardDetailsFromDb, exp: expFromDb } }); // Pass exp to confirmAction
+                    setIsConfirmModal(true);
                 } else { // No existing image, set it and update the parent
                     setCardImage(imageUrl);
-                    updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
+                    // Use provided HP/EXP or default to 0
+                    const newBaseHp = cardDetailsFromDb.baseHp !== undefined ? cardDetailsFromDb.baseHp : baseHp;
+                    updateParentCardData(newBaseHp, damageTaken, statuses, imageUrl, expFromDb, isActivePokemon); // Pass expFromDb
                 }
                 resetCardView(); // Reset view after image selection attempt
             };
@@ -958,28 +1201,33 @@
              * @param {boolean} [shouldResetDataForImageReplace=false] - Only for 'confirm_replace_image', true if data should be cleared.
              */
             const handleConfirmAction = (actionType, shouldResetDataForImageReplace = false) => {
-                setIsConfirmModalOpen(false); // Close the modal immediately
+                setIsConfirmModal(false); // Close the modal immediately
 
                 if (actionType === 'confirm_replace_image' && confirmAction && confirmAction.type === 'replace_image') {
                     const imageUrl = confirmAction.imageUrl;
+                    const cardDetailsFromDb = confirmAction.cardDetailsFromDb || {};
+                    const currentExpValue = cardData ? cardData.exp : 0; // Get current exp from cardData for non-reset case
+
                     if (shouldResetDataForImageReplace) {
-                        setBaseHp(0);
+                        const newBaseHp = cardDetailsFromDb.baseHp !== undefined ? cardDetailsFromDb.baseHp : 0;
+                        const newExp = cardDetailsFromDb.exp !== undefined ? cardDetailsFromDb.exp : 0; // Use exp from DB or 0
+                        setBaseHp(newBaseHp);
                         setDamageTaken(0);
                         setStatuses(Array(5).fill(false));
-                        setCurrentExp(0);
+                        // Removed setCurrentExp
                         setCardImage(imageUrl);
                         setIsActivePokemon(false); // Also clear active state
-                        updateParentCardData(0, 0, Array(5).fill(false), imageUrl, 0, false);
+                        updateParentCardData(newBaseHp, 0, Array(5).fill(false), imageUrl, newExp, false); // Pass newExp here
                     } else {
                         setCardImage(imageUrl);
-                        updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
+                        updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExpValue, isActivePokemon); // Pass currentExpValue
                     }
                 } else if (actionType === 'reset_full_slot' && confirmAction && confirmAction.type === 'reset_full_slot') { // This condition is correct
                     setCardImage(null);
                     setBaseHp(0);
                     setDamageTaken(0);
                     setStatuses(Array(5).fill(false));
-                    setCurrentExp(0);
+                    // Removed setCurrentExp
                     setIsActivePokemon(false); // Also reset active state
                     onUpdateCard(slotIndex, null); // Pass null to completely remove the card
                 } else if (actionType === 'send_to_box' && confirmAction && confirmAction.type === 'send_to_box') {
@@ -987,16 +1235,31 @@
                         onSendToBox({
                             imageUrl: cardImage,
                             baseHp: baseHp,
-                            exp: currentExp
+                            exp: cardData.exp // Use exp from original cardData
                         }, slotIndex);
                     }
                 } else if (actionType === 'save_and_recall_from_box' && confirmAction && confirmAction.type === 'save_and_recall_from_box') {
                     if (shouldResetDataForImageReplace) { // This means "Sì" to saving current card
-                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: currentExp }, slotIndex); // Save current card
+                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: cardData.exp }, slotIndex); // Save current card
                     } else { // This means "No" to saving current card, but still proceeding to recall
                         // The current card will be overwritten, no explicit action needed here for it
                     }
                     setShowRecallFromBoxModal(true); // Always open the recall modal after confirmation
+                } else if (actionType === 'save_and_select_from_db' && confirmAction && confirmAction.type === 'save_and_select_from_db') {
+                    if (shouldResetDataForImageReplace) { // "Sì" to saving current card
+                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: cardData.exp }, slotIndex);
+                    }
+                    setShowSelectFromDatabaseModal(true); // Open database modal
+                } else if (actionType === 'save_and_select_from_supabase_table' && confirmAction && confirmAction.type === 'save_and_select_from_supabase_table') {
+                    if (shouldResetDataForImageReplace) { // "Sì" to saving current card
+                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: cardData.exp }, slotIndex);
+                    }
+                    setShowSelectFromSupabaseTableModal(true); // Open Supabase table modal
+                } else if (actionType === 'save_and_select_from_palestre' && confirmAction && confirmAction.type === 'save_and_select_from_palestre') {
+                    if (shouldResetDataForImageReplace) { // "Sì" to saving current card
+                        onSendToBox({ imageUrl: cardImage, baseHp: baseHp, exp: cardData.exp }, slotIndex);
+                    }
+                    setShowSelectFromPalestreModal(true); // Open Palestre modal
                 }
                 setConfirmAction(null); // Reset the pending action
                 // Removed resetCardView() from here
@@ -1010,7 +1273,9 @@
             const handleBaseHpChange = (event) => {
                 const value = parseInt(event.target.value) || 0; // Convert to number, default 0
                 setBaseHp(value);
-                updateParentCardData(value, damageTaken, statuses, cardImage, currentExp, isActivePokemon);
+                // When EXP is removed from UI, we should still pass the actual exp value from cardData
+                const currentExpValue = cardData ? cardData.exp : 0;
+                updateParentCardData(value, damageTaken, statuses, cardImage, currentExpValue, isActivePokemon);
                 // Removed resetCardView() from here
             };
 
@@ -1021,7 +1286,8 @@
             const handleDamageChange = (amount) => {
                 setDamageTaken(prevDamage => {
                     const newDamage = Math.max(0, prevDamage + amount); // Damage cannot be negative
-                    updateParentCardData(baseHp, newDamage, statuses, cardImage, currentExp, isActivePokemon); 
+                    const currentExpValue = cardData ? cardData.exp : 0; // Retrieve exp from cardData
+                    updateParentCardData(baseHp, newDamage, statuses, cardImage, currentExpValue, isActivePokemon); 
                     return newDamage;
                 });
                 // Removed resetCardView() from here
@@ -1032,14 +1298,7 @@
              * Ensures experience remains between 0 and 6.
              * @param {number} amount - The amount to add (or subtract) to EXP.
              */
-            const handleExpChange = (amount) => {
-                setCurrentExp(prevExp => {
-                    const newExp = Math.max(0, Math.min(6, prevExp + amount)); // Limit to 6
-                    updateParentCardData(baseHp, damageTaken, statuses, cardImage, newExp, isActivePokemon);
-                    return newExp;
-                });
-                // Removed resetCardView() from here
-            };
+            // Removed handleExpChange function
 
             /**
              * Toggles the state of a specific status marker.
@@ -1052,7 +1311,8 @@
                 setStatuses(prevStatuses => {
                     const newStatuses = [...prevStatuses];
                     newStatuses[index] = !newStatuses[index]; // Toggle the status
-                    updateParentCardData(baseHp, damageTaken, newStatuses, cardImage, currentExp, isActivePokemon);
+                    const currentExpValue = cardData ? cardData.exp : 0; // Retrieve exp from cardData
+                    updateParentCardData(baseHp, damageTaken, newStatuses, cardImage, currentExpValue, isActivePokemon);
                     return newStatuses;
                 });
                 // Removed resetCardView() from here
@@ -1063,7 +1323,7 @@
              */
             const requestFullSlotReset = () => {
                 setConfirmAction({ type: 'reset_full_slot' });
-                setIsConfirmModalOpen(true);
+                setIsConfirmModal(true);
                 // Removed resetCardView() from here
             };
 
@@ -1073,7 +1333,7 @@
             const handleSendToBox = () => {
                 if (cardData) { // Only allow sending to box if there's a card in the slot
                     setConfirmAction({ type: 'send_to_box' });
-                    setIsConfirmModalOpen(true);
+                    setIsConfirmModal(true);
                 }
                 // Removed resetCardView() from here
             };
@@ -1082,7 +1342,7 @@
             const handleBoxRecallClick = () => {
                 if (cardData) { // If there's a card in the slot, ask to save it first
                     setConfirmAction({ type: 'save_and_recall_from_box' });
-                    setIsConfirmModalOpen(true);
+                    setIsConfirmModal(true);
                 } else { // If the slot is empty, directly open the recall modal
                     setShowRecallFromBoxModal(true);
                 }
@@ -1091,11 +1351,8 @@
 
             // NEW: Handle click on the "Aggiungi Carta" placeholder when slot is empty
             const handleAddCardPlaceholderClick = () => {
-                if (boxCards && boxCards.length > 0) {
-                    setShowAddCardChoiceModal(true); // Show the choice modal
-                } else {
-                    setShowCameraModal(true); // Directly open camera if box is empty
-                }
+                // Now always show the choice modal first
+                setShowAddCardChoiceModal(true);
                 // Removed resetCardView() from here
             };
 
@@ -1110,6 +1367,78 @@
                 setShowAddCardChoiceModal(false); // Close choice modal
                 setShowRecallFromBoxModal(true); // Open recall modal
                 // Removed resetCardView() from here
+            };
+
+            // NEW: Handler for choosing from database
+            const handleChooseFromDatabase = () => {
+                setShowAddCardChoiceModal(false); // Close choice modal
+                if (cardData) { // If there's a card in the slot, ask to save it first
+                    setConfirmAction({ type: 'save_and_select_from_db' });
+                    setIsConfirmModal(true);
+                } else {
+                    setShowSelectFromDatabaseModal(true); // Directly open database modal
+                }
+                // Removed resetCardView() from here
+            };
+
+            // NEW: Handler for choosing from Supabase table
+            const handleChooseFromSupabaseTable = () => {
+                setShowAddCardChoiceModal(false); // Close choice modal
+                if (cardData) { // If there's a card in the slot, ask to save it first
+                    setConfirmAction({ type: 'save_and_select_from_supabase_table' });
+                    setIsConfirmModal(true);
+                } else {
+                    setShowSelectFromSupabaseTableModal(true); // Directly open Supabase table modal
+                }
+            };
+
+            // NEW: Handler for choosing from Palestre table
+            const handleChooseFromPalestre = () => {
+                setShowAddCardChoiceModal(false); // Close choice modal
+                if (cardData) { // If there's a card in the slot, ask to save it first
+                    setConfirmAction({ type: 'save_and_select_from_palestre' });
+                    setIsConfirmModal(true);
+                } else {
+                    setShowSelectFromPalestreModal(true); // Directly open Palestre modal
+                }
+            };
+
+            // NEW: Handler for selecting a card from the database modal
+            const handleSelectCardFromDatabase = (selectedCard) => {
+                // selectedCard already contains the correctly mapped properties (imageUrl, baseHp, exp)
+                // from the App component's Supabase fetch.
+                // We can directly pass these to handleNewImageSelection.
+                handleNewImageSelection(selectedCard.imageUrl, { 
+                    baseHp: selectedCard.baseHp, 
+                    exp: selectedCard.exp 
+                });
+                setShowSelectFromDatabaseModal(false); // Close modal after selection
+                resetCardView();
+            };
+
+            // NEW: Handler for selecting a random card from a Supabase table
+            const handleSelectRandomCardFromSupabaseTable = async (tableName) => {
+                try {
+                    const randomCard = await onSelectTableAndFetchRandom(tableName); // Call the parent function
+                    if (randomCard) {
+                        handleNewImageSelection(randomCard.imageUrl, { baseHp: randomCard.baseHp, exp: randomCard.exp });
+                    } else {
+                        throw new Error("Nessuna carta trovata nella tabella selezionata.");
+                    }
+                } catch (error) {
+                    console.error("Errore durante il recupero della carta casuale:", error);
+                    // The error state is handled by SelectFromSupabaseTableModal itself
+                } finally {
+                    setShowSelectFromSupabaseTableModal(false); // Close modal regardless of success/failure
+                    resetCardView();
+                }
+            };
+
+            // NEW: Handler for selecting a card from the Palestre modal
+            const handleSelectCardFromPalestreCallback = (selectedCard) => {
+                onSelectPalestreCard(selectedCard); // Pass the entire selected palestre card to App
+                setShowSelectFromPalestreModal(false); // Close modal after selection
+                // No need to reset card view here, as the App component will update slots 0 and 1
             };
 
 
@@ -1128,12 +1457,8 @@
             React.useEffect(() => {
                 setIsActivePokemon(cardData ? cardData.isActivePokemon : false);
                 // When the isActivePokemon prop becomes false (deactivated by another slot),
-                // reset local statuses for this CardSlot.
-                if (cardData && !cardData.isActivePokemon && statuses.some(s => s)) {
-                    setStatuses(Array(5).fill(false));
-                    // Note: We don't call updateParentCardData here to avoid an infinite loop or unwanted states.
-                    // Status reset should be handled by the parent when deactivating the card.
-                }
+                // the parent App component already resets its statuses.
+                // So, no need to call setStatuses here.
             }, [cardData ? cardData.isActivePokemon : undefined]); // Only depend on isActivePokemon part of cardData
 
             // Determine if the star button (toggle active) should be disabled for this specific CardSlot
@@ -1142,14 +1467,16 @@
             // 2. An active card (potentially this one) is paralyzed, AND it's my turn.
             const isStarButtonDisabled = !isMyTurn || (isMyTurn && activeCardParalyzed && !isActivePokemon) || (isMyTurn && isActivePokemon && cardData && cardData.statuses[3]);
 
+            // Determine if the entire slot controls should be disabled for Player App
+            const isPlayerSlotDisabled = (role === 'player' && slotIndex >= 2); // Player can only interact with first 2 slots
 
             // Tailwind CSS classes for status marker colors
             const statusColors = [
                 'bg-lime-500 hover:bg-lime-600',    /* 😴 Asleep (Lime Green) */
                 'bg-rose-500 hover:bg-rose-600',    /* 🔥 Burned (Rose/Red) */
                 'bg-sky-500 hover:bg-sky-600',      /* 😵 Confused (Sky Blue) */
-                'bg-yellow-500 hover:bg-yellow-600', /* 🛑 Paralyzed (Yellow) */
-                'bg-purple-500 hover:bg-purple-600' /* 💀 Poisoned (Purple) - Original color */
+                'bg-yellow-500 hover:bg-yellow-600', /* 🛑 Paralizzato (Yellow) */
+                'bg-purple-500 hover:bg-purple-600' /* 💀 Avvelenato (Purple) - Original color */
             ];
 
             const currentHpValue = baseHp - damageTaken;
@@ -1174,7 +1501,14 @@
             };
 
             return (
-                <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'}`}>
+                <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'} ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    {/* Overlay to disable interaction for player-specific slots */}
+                    {isPlayerSlotDisabled && (
+                        <div className="absolute inset-0 bg-gray-900 bg-opacity-50 z-20 rounded-xl flex items-center justify-center text-white text-center text-lg font-bold">
+                            Solo per Master
+                        </div>
+                    )}
+
                     {/* Hidden file input for file upload */}
                     <input
                         type="file"
@@ -1182,6 +1516,7 @@
                         onChange={handleFileUpload}
                         ref={fileInputRef}
                         className="hidden" 
+                        disabled={isPlayerSlotDisabled} // Disable input for player-specific slots
                     />
 
                     {/* Current HP Container and Active Indicator */}
@@ -1194,9 +1529,9 @@
                         {/* Active Icon */}
                         <button
                             onClick={handleToggleActivePokemon} // Use the new handler
-                            className={`ml-4 flex items-center justify-center w-12 h-12 rounded-full text-3xl shadow-md transition-all duration-200 ease-in-out border-2 ${isActivePokemon ? 'bg-yellow-400 border-yellow-600 text-gray-800' : 'bg-gray-600 border-gray-700 text-gray-300 hover:bg-gray-500'} ${isStarButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`ml-4 flex items-center justify-center w-12 h-12 rounded-full text-3xl shadow-md transition-all duration-200 ease-in-out border-2 ${isActivePokemon ? 'bg-yellow-400 border-yellow-600 text-gray-800' : 'bg-gray-600 border-gray-700 text-gray-300 hover:bg-gray-500'} ${(isStarButtonDisabled || isPlayerSlotDisabled) ? 'opacity-50 cursor-not-allowed' : ''}`}
                             title={isActivePokemon ? 'Pokémon Attivo' : 'Rendi Attivo'}
-                            disabled={isStarButtonDisabled}
+                            disabled={isStarButtonDisabled || isPlayerSlotDisabled}
                         >
                             ⭐
                         </button>
@@ -1224,25 +1559,26 @@
                             {/* Zoom controls overlay */}
                             <div className="absolute bottom-2 right-2 flex items-center space-x-1 bg-gray-900 bg-opacity-70 p-1 rounded-lg shadow-md">
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); handleZoom(1 / (1 + ZOOM_STEP)); }} /* Zoom out */
+                                    onClick={(e) => e.stopPropagation() || handleZoom(1 / (1 + ZOOM_STEP))} /* Zoom out */
                                     className="w-8 h-8 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
                                     title="Zoom Out"
-                                    disabled={zoomLevel <= MIN_ZOOM}
+                                    disabled={zoomLevel <= MIN_ZOOM || isPlayerSlotDisabled}
                                 >
                                     -
                                 </button>
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); handleZoom(1 + ZOOM_STEP); }} /* Zoom in */
+                                    onClick={(e) => e.stopPropagation() || handleZoom(1 + ZOOM_STEP)} /* Zoom in */
                                     className="w-8 h-8 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors"
                                     title="Zoom In"
-                                    disabled={zoomLevel >= MAX_ZOOM}
+                                    disabled={zoomLevel >= MAX_ZOOM || isPlayerSlotDisabled}
                                 >
                                     +
                                 </button>
                                 <button
-                                    onClick={(e) => { e.stopPropagation(); handleResetView(); }}
+                                    onClick={(e) => e.stopPropagation() || handleResetView()}
                                     className="w-8 h-8 rounded-full bg-red-600 text-white text-lg flex items-center justify-center shadow-md hover:bg-red-700 transition-colors"
                                     title="Reset View"
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     🔄
                                 </button>
@@ -1252,7 +1588,7 @@
                         // Placeholder to request image upload (vertical)
                         <div
                             className="w-48 h-64 bg-gray-900 flex justify-center items-center text-gray-400 text-xl cursor-pointer rounded-lg border-4 border-dashed border-gray-600 mb-6 hover:bg-gray-800 transition-colors duration-300 shadow-inner"
-                            onClick={handleAddCardPlaceholderClick} /* NEW: Use the new handler */
+                            onClick={isPlayerSlotDisabled ? null : handleAddCardPlaceholderClick} /* Disable click for player-specific slots */
                         >
                             <span className="text-center font-bold">Aggiungi Carta</span>
                         </div>
@@ -1265,15 +1601,17 @@
                             <div className="flex space-x-4 mb-6 w-full justify-center">
                                 <button
                                     onClick={() => { fileInputRef.current.click(); }} 
-                                    className="icon-btn btn-blue"
+                                    className={`icon-btn btn-blue ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     title="Carica da File"
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     📁
                                 </button>
                                 <button
                                     onClick={() => { setShowCameraModal(true); }} 
-                                    className="icon-btn btn-purple"
+                                    className={`icon-btn btn-purple ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     title="Carica da Fotocamera"
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     📸
                                 </button>
@@ -1286,8 +1624,9 @@
                                     type="number"
                                     value={baseHp}
                                     onChange={handleBaseHpChange}
-                                    className="w-24 px-3 py-2 bg-gray-900 border-2 border-red-500 rounded-lg text-center text-red-200 font-extrabold shadow-inner focus:outline-none focus:ring-2 focus:ring-red-400 no-spinner"
+                                    className={`w-24 px-3 py-2 bg-gray-900 border-2 border-red-500 rounded-lg text-center text-red-200 font-extrabold shadow-inner focus:outline-none focus:ring-2 focus:ring-red-400 no-spinner ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     min="0"
+                                    disabled={isPlayerSlotDisabled}
                                 />
                             </div>
 
@@ -1296,43 +1635,22 @@
                                 <span className="counter-label text-orange-300">Danni:</span>
                                 <button
                                     onClick={() => handleDamageChange(-10)}
-                                    className="btn-theme btn-yellow px-4 py-2 text-xl"
+                                    className={`btn-theme btn-yellow px-4 py-2 text-xl ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     -10
                                 </button>
                                 <span className="counter-value text-red-500">{damageTaken}</span>
                                 <button
                                     onClick={() => handleDamageChange(10)}
-                                    className="btn-theme btn-orange px-4 py-2 text-xl"
+                                    className={`btn-theme btn-orange px-4 py-2 text-xl ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     +10
                                 </button>
                             </div>
 
-                            {/* Experience Counter with dots */}
-                            <div className="flex items-center space-x-4 mb-6 text-xl w-full justify-center">
-                                <span className="counter-label text-purple-300">EXP:</span>
-                                <button
-                                    onClick={() => handleExpChange(-1)}
-                                    className="btn-theme btn-red px-4 py-2 text-xl"
-                                >
-                                    -
-                                </button>
-                                <div className="flex space-x-1 px-2"> {/* Container for dots */}
-                                    {[...Array(6)].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className={`exp-dot ${i < currentExp ? (i < 3 ? 'active-yellow' : 'active-blue') : ''}`}
-                                        ></div>
-                                    ))}
-                                </div>
-                                <button
-                                    onClick={() => handleExpChange(1)}
-                                    className="btn-theme btn-green px-4 py-2 text-xl"
-                                >
-                                    +
-                                </button>
-                            </div>
+                            {/* Removed Experience Counter with dots */}
 
                             {/* Status Markers */}
                             <div className="flex space-x-3 mb-6">
@@ -1376,11 +1694,8 @@
                                     }
 
                                     // Apply specific font size if needed for large emojis
-                                    if (statusSymbol === '⚫' || statusSymbol === '❄️') {
-                                        fontSizeClass = "text-xl"; // Smaller font size for these specific emojis
-                                    } else {
-                                        fontSizeClass = "text-3xl"; // Default larger size for others
-                                    }
+                                    // Removed specific font size for status symbols, as they are not medals and should be consistent.
+                                    fontSizeClass = "text-3xl"; // Consistent large size for status emojis
                                     classes.push(fontSizeClass);
 
 
@@ -1393,7 +1708,7 @@
                                     }
 
                                     // Add cursor-pointer only if active, otherwise cursor-not-allowed
-                                    if (isActivePokemon) {
+                                    if (isActivePokemon && !isPlayerSlotDisabled) { // Also disabled if player slot
                                         classes.push('cursor-pointer', 'hover:bg-gray-500');
                                     } else {
                                         classes.push('cursor-not-allowed', 'opacity-50');
@@ -1404,7 +1719,7 @@
                                         <div
                                             key={index}
                                             className={classes.join(' ')} 
-                                            onClick={() => toggleStatus(index)}
+                                            onClick={isPlayerSlotDisabled ? null : () => toggleStatus(index)} // Disable click for player-specific slots
                                             title={statusTitle}
                                         >
                                             {statusSymbol}
@@ -1417,15 +1732,17 @@
                             <div className="flex justify-center w-full mt-2 space-x-4 max-w-xs">
                                 <button
                                     onClick={handleBoxRecallClick} /* For recalling from box */
-                                    className="btn-theme btn-purple px-4 py-2 text-base flex-grow"
+                                    className={`btn-theme btn-purple px-4 py-2 text-base flex-grow ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     title="Richiama dal Box"
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     BOX
                                 </button>
                                 <button
                                     onClick={requestFullSlotReset} 
-                                    className="icon-btn btn-red"
+                                    className={`icon-btn btn-red ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     title="Resetta Tutto lo Slot"
+                                    disabled={isPlayerSlotDisabled}
                                 >
                                     🗑️
                                 </button>
@@ -1436,7 +1753,7 @@
                     {/* Generic confirmation window (for replace image or reset slot or send to box) */}
                     {isConfirmModalOpen && (
                         <div className="absolute inset-0 bg-gray-900 bg-opacity-95 flex flex-col justify-center items-center z-20 rounded-lg p-6">
-                            {confirmAction && confirmAction.type === 'replace_image' && (
+                            {confirmAction && (confirmAction.type === 'replace_image' || confirmAction.type === 'save_and_select_from_db' || confirmAction.type === 'save_and_select_from_supabase_table' || confirmAction.type === 'save_and_select_from_palestre') && (
                                 <p className="text-white text-center mb-6 text-xl font-bold">
                                     Vuoi mantenere i dati della carta precedente o azzerarli?
                                 </p>
@@ -1458,23 +1775,23 @@
                                 </p>
                             )}
                             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 w-full justify-center">
-                                {confirmAction && confirmAction.type === 'replace_image' && (
+                                {confirmAction && (confirmAction.type === 'replace_image' || confirmAction.type === 'save_and_select_from_db' || confirmAction.type === 'save_and_select_from_supabase_table' || confirmAction.type === 'save_and_select_from_palestre') && (
                                     <button
-                                        onClick={() => handleConfirmAction('confirm_replace_image', false)} // Keep Data
+                                        onClick={() => handleConfirmAction(confirmAction.type, false)} // Keep Data
                                         className="btn-theme btn-green text-base md:text-lg"
                                     >
                                         Mantieni Dati
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => handleConfirmAction(confirmAction.type === 'replace_image' ? 'confirm_replace_image' : confirmAction.type, true)} /* Corrected call: pass correct actionType based on confirmAction.type */
+                                    onClick={() => handleConfirmAction(confirmAction.type, true)} /* Corrected call: pass correct actionType based on confirmAction.type */
                                     className="btn-theme btn-red text-base md:text-lg"
                                 >
-                                    {confirmAction && confirmAction.type === 'replace_image' ? 'Azzera Dati' : 'Sì'}
+                                    {confirmAction && (confirmAction.type === 'replace_image' || confirmAction.type === 'save_and_select_from_db' || confirmAction.type === 'save_and_select_from_supabase_table' || confirmAction.type === 'save_and_select_from_palestre') ? 'Azzera Dati' : 'Sì'}
                                 </button>
-                                {(confirmAction && (confirmAction.type === 'reset_full_slot' || confirmAction.type === 'send_to_box' || confirmAction.type === 'save_and_recall_from_box')) && (
+                                {(confirmAction && (confirmAction.type === 'reset_full_slot' || confirmAction.type === 'send_to_box' || confirmAction.type === 'save_and_recall_from_box' || confirmAction.type === 'save_and_select_from_supabase_table' || confirmAction.type === 'save_and_select_from_db' || confirmAction.type === 'save_and_select_from_palestre')) && (
                                     <button
-                                        onClick={() => { setIsConfirmModalOpen(false); }} 
+                                        onClick={() => { setIsConfirmModal(false); }} 
                                         className="btn-theme btn-gray text-base md:text-lg"
                                     >
                                         No
@@ -1515,12 +1832,42 @@
                         }}
                     />
 
+                    {/* NEW: Select from Database Modal */}
+                    <SelectFromDatabaseModal
+                        isOpen={showSelectFromDatabaseModal}
+                        onClose={() => setShowSelectFromDatabaseModal(false)}
+                        onSelectCardFromDatabase={handleSelectCardFromDatabase}
+                        cardsData={pokemonDbCards} /* Passed Pokémon cards here */
+                        isLoading={isDbLoading} /* Passed from App to CardSlot */
+                        error={dbError} /* Passed from App to CardSlot */
+                    />
+
+                    {/* NEW: Select from Supabase Table Modal */}
+                    <SelectFromSupabaseTableModal
+                        isOpen={showSelectFromSupabaseTableModal}
+                        onClose={() => setShowSelectFromSupabaseTableModal(false)}
+                        onSelectTableAndFetchRandom={handleSelectRandomCardFromSupabaseTable} /* Pass the new handler */
+                    />
+
+                    {/* NEW: Select from Palestre Modal */}
+                    <SelectFromPalestreModal
+                        isOpen={showSelectFromPalestreModal}
+                        onClose={() => setShowSelectFromPalestreModal(false)}
+                        onSelectCardFromPalestre={handleSelectCardFromPalestreCallback} // Updated callback
+                        cardsData={palestreDbCards} /* Pass Palestre cards here */
+                        isLoading={isDbLoading} /* Passed from App to CardSlot */
+                        error={dbError} /* Passed from App to CardSlot */
+                    />
+
                     {/* NEW: Add Card Choice Modal */}
                     <AddCardChoiceModal
                         isOpen={showAddCardChoiceModal}
                         onClose={() => { setShowAddCardChoiceModal(false); }} 
                         onChooseNew={handleChooseNewCard}
                         onChooseFromBox={handleChooseFromBox}
+                        onChooseFromDatabase={handleChooseFromDatabase}
+                        onChooseFromSupabaseTable={handleChooseFromSupabaseTable} /* New prop */
+                        onChooseFromPalestre={handleChooseFromPalestre} /* New prop */
                     />
                 </div>
             );
@@ -1545,7 +1892,7 @@
                                 isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                             ];
                             // Specific font size for '⚫' (Rock Medal)
-                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl";
+                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl"; // Adjusted font size for Rock Medal
                             classes.push(fontSizeClass);
 
                             return (
@@ -1582,7 +1929,7 @@
                                 isActive ? "active" : "" /* Active state handled by CSS */
                             ];
                             // Specific font size for '❄️' (Lorelei)
-                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl";
+                            const fontSizeClass = (index === 0) ? "text-xl" : "text-3xl"; // Adjusted font size for Lorelei
                             classes.push(fontSizeClass);
 
                             return (
@@ -1709,31 +2056,29 @@
 
             return (
                 <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4"> {/* flex-1 and min-w to make them share space */}
-                    <div className="flex flex-col items-center justify-center gap-2 w-full"> {/* Changed to flex-col */}
-                        <h2 className="text-lg font-bold text-yellow-300 whitespace-nowrap">{title}</h2>
-                        
-                        <div className="flex items-center space-x-2">
-                            <label htmlFor={`num-dice-${title}`} className="counter-label text-white text-sm">N°:</label>
-                            <select
-                                id={`num-dice-${title}`}
-                                value={numberOfDice}
-                                onChange={(e) => setNumberOfDice(parseInt(e.target.value))}
-                                className="bg-gray-700 text-white rounded-md p-1 text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                            >
-                                {[1, 2, 3, 4, 5, 6].map(num => (
-                                    <option key={num} value={num}>{num}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <button
-                            onClick={handleRoll}
-                            className="btn-theme btn-green text-base px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed w-full" /* Added w-full */
-                            disabled={isDisabled} 
+                    <h2 className="text-lg font-bold text-yellow-300 whitespace-nowrap">{title}</h2>
+                    
+                    <div className="flex items-center space-x-2">
+                        <label htmlFor={`num-dice-${title}`} className="counter-label text-white text-sm">N°:</label>
+                        <select
+                            id={`num-dice-${title}`}
+                            value={numberOfDice}
+                            onChange={(e) => e.stopPropagation() || setNumberOfDice(parseInt(e.target.value))}
+                            className="bg-gray-700 text-white rounded-md p-1 text-sm border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                         >
-                            Lancia
-                        </button>
+                            {[1, 2, 3, 4, 5, 6].map(num => (
+                                <option key={num} value={num}>{num}</option>
+                            ))}
+                        </select>
                     </div>
+
+                    <button
+                        onClick={handleRoll}
+                        className="btn-theme btn-green text-base px-3 py-1 disabled:opacity-50 disabled:cursor-not-allowed w-full" /* Added w-full */
+                        disabled={isDisabled} 
+                    >
+                        Lancia
+                    </button>
 
                     {results.length > 0 && ( 
                         <div className="flex flex-wrap justify-center gap-2 text-3xl font-extrabold text-white mt-2"> 
@@ -1756,7 +2101,7 @@
                             ATTACCO FALLITO!
                         </div>
                     )}
-                    {/* Banners only for Retreat Roller */}
+                    {/* Banners only for Retreat Roller (not Capture Roller) */}
                     {!isAttackRoller && !isCaptureRoller && retreatFailed && (
                         <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
                             FALLITA!
@@ -1777,22 +2122,22 @@
             );
         }
 
-        // Component for rolling the Movement die
-        function MovementDiceRoller({ onRoll }) {
-            return (
-                <button
-                    onClick={onRoll}
-                    className="btn-theme btn-gray px-4 py-2 text-base flex flex-col items-center justify-center w-full max-w-xs mb-4" /* Added w-full max-w-xs mb-4 */
-                    title="Lancia Dado Movimento"
-                >
-                    <span className="text-xl">🎲</span>
-                    <span className="text-xs mt-1">Movimento</span>
-                </button>
-            );
-        }
+        // Removed MovementDiceRoller component
+        // function MovementDiceRoller({ onRoll }) {
+        //     return (
+        //         <button
+        //             onClick={onRoll}
+        //             className="btn-theme btn-gray px-4 py-2 text-base flex flex-col items-center justify-center w-full max-w-xs mb-4" /* Added w-full max-w-xs mb-4 */
+        //             title="Lancia Dado Movimento"
+        //         >
+        //             <span className="text-xl">🎲</span>
+        //             <span className="text-xs mt-1">Movimento</span>
+        //         </button>
+        //     );
+        // }
 
         // Component for the turn indicator
-        function TurnIndicator({ isMyTurn, onToggleTurn }) {
+        function TurnIndicator({ isMyTurn, onToggleTurn, role }) { // Added role prop
             const icon = isMyTurn ? '🏁' : '🚩'; // Checkered flag for your turn, red flag for opponent
             const title = isMyTurn ? 'Il tuo turno' : 'Turno avversario';
             const bgColor = isMyTurn ? 'bg-green-500' : 'bg-red-500';
@@ -1801,8 +2146,9 @@
             return (
                 <button
                     onClick={onToggleTurn}
-                    className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md transition-all duration-200 ease-in-out border-4 ${bgColor} ${borderColor} hover:scale-105 active:scale-95 mb-4`} /* Added mb-4 */
+                    className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md transition-all duration-200 ease-in-out border-4 ${bgColor} ${borderColor} hover:scale-105 active:scale-95 mb-4 ${role === 'master' ? 'opacity-50 cursor-not-allowed' : ''}`} // Disabled for Master
                     title={title}
+                    disabled={role === 'master'} // Disable for Master app
                 >
                     {icon}
                 </button>
@@ -1836,7 +2182,7 @@
         }
 
         // NEW: BoxView Component
-        function BoxView({ boxCards, onBackToMain, onDeleteCardFromBox }) { // Added onDeleteCardFromBox
+        function BoxView({ boxCards, onBackToMain, onDeleteCardFromBox, role }) { // Added role prop
             const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
             const [cardToDeleteIndex, setCardToDeleteIndex] = React.useState(null);
 
@@ -1853,6 +2199,9 @@
                 }
             };
 
+            // Removed `if (!isOpen) return null;`
+            // The BoxView is now a full-page view, not a modal that needs an `isOpen` prop.
+
             return (
                 <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-gray-700 to-gray-900 p-4 relative">
                     <h2 className="text-4xl font-extrabold text-yellow-300 mb-8 text-center">IL TUO BOX POKÉMON</h2>
@@ -1865,7 +2214,7 @@
                     </button>
 
                     {boxCards.length === 0 ? (
-                        <p className="text-gray-400 text-xl mt-8">Il tuo box è vuoto. Invia alcune carte!</p>
+                        <p className="text-gray-400 text-xl mt-8">Il tuo box è vuoto. Invia prima alcune carte!</p>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl">
                             {boxCards.map((card, index) => (
@@ -1878,13 +2227,15 @@
                                     />
                                     <p className="text-gray-300 text-sm font-semibold">HP Base: {card.baseHp}</p>
                                     <p className="text-gray-300 text-sm font-semibold">EXP: {card.exp}</p>
-                                    <button
-                                        onClick={() => handleDeleteClick(index)}
-                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-700"
-                                        title="Elimina dal Box"
-                                    >
-                                        X
-                                    </button>
+                                    {role === 'master' && ( // Only show delete button in Master mode
+                                        <button
+                                            onClick={() => handleDeleteClick(index)}
+                                            className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-red-700"
+                                            title="Elimina dal Box"
+                                        >
+                                            X
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -1917,54 +2268,241 @@
             );
         }
 
-        // App component - Main container for the game interface
-        function App() {
+        // NEW: NegozioView Component (replaces BackpackView)
+        function NegozioView({ negozioCards, onBackToMain, isDbLoading, dbError, role }) { // Added role prop
+            const [showZoomModal, setShowZoomModal] = React.useState(false);
+            const [zoomImageUrl, setZoomImageUrl] = React.useState(null);
+
+            const handleCardClick = (imageUrl) => {
+                setZoomImageUrl(imageUrl);
+                setShowZoomModal(true);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-indigo-700 to-purple-900 p-4 relative">
+                    <h2 className="text-4xl font-extrabold text-yellow-300 mb-8 text-center">NEGOZIO DI CARTE</h2>
+
+                    <button
+                        onClick={onBackToMain}
+                        className="btn-theme btn-blue mb-8 px-6 py-3 text-lg"
+                    >
+                        Torna al Gioco
+                    </button>
+
+                    {isDbLoading && <p className="text-blue-300 text-xl mt-8">Caricamento carte negozio...</p>}
+                    {dbError && <p className="text-red-500 text-xl mt-8">Errore nel caricamento del negozio: {dbError}</p>}
+                    
+                    {!isDbLoading && !dbError && negozioCards.length === 0 ? (
+                        <p className="text-gray-400 text-xl mt-8">Il negozio è vuoto. Nessuna carta disponibile.</p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl">
+                            {negozioCards.map((card, index) => (
+                                <div 
+                                    key={card.id || index} 
+                                    className="relative bg-gray-800 p-4 rounded-xl shadow-lg border-2 border-gray-600 flex flex-col items-center cursor-pointer hover:bg-gray-700 transition-colors"
+                                    onClick={() => handleCardClick(card.imageUrl)}
+                                >
+                                    <img
+                                        src={card.imageUrl}
+                                        alt={card.name || `Carta Negozio ${index + 1}`}
+                                        className="w-32 h-44 object-cover rounded-lg border border-gray-700 mb-2"
+                                        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/128x176/444/bbb?text=Errore+Immagine"; }}
+                                    />
+                                    <p className="text-gray-300 text-sm font-semibold">{card.name || 'Carta Sconosciuta'}</p>
+                                    {card.baseHp !== undefined && card.baseHp > 0 && (
+                                        <p className="text-gray-400 text-xs">HP: {card.baseHp}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <ZoomModal
+                        isOpen={showZoomModal}
+                        imageUrl={zoomImageUrl}
+                        onClose={() => setShowZoomModal(false)}
+                    />
+                </div>
+            );
+        }
+
+        // --------------------------------------------------------------------------------------
+        // START - PLAYER APP COMPONENT
+        // This component contains all the game logic for the "Player" role.
+        // It saves/loads its data using 'player_' prefixes in localStorage.
+        // --------------------------------------------------------------------------------------
+        function PlayerApp({ onSwitchRole }) {
+            const rolePrefix = 'player'; // Unique prefix for localStorage keys
+
             // Initialize card state from localStorage or an empty array of 6 slots
             const [cards, setCards] = React.useState(() => {
-                const savedCards = localStorage.getItem('gameCards');
-                // Ensure isActivePokemon is properly initialized for existing cards
+                const savedCards = localStorage.getItem(`${rolePrefix}_gameCards`);
                 const initialCards = savedCards ? JSON.parse(savedCards) : Array(6).fill(null);
-                // Ensure statuses array has 5 elements initialized and isActivePokemon is set
                 return initialCards.map(card => card ? { 
                     ...card, 
                     isActivePokemon: card.isActivePokemon || false,
-                    statuses: card.statuses && card.statuses.length === 5 ? card.statuses : Array(5).fill(false) // Ensure statuses is 5-element array
+                    statuses: card.statuses && card.statuses.length === 5 ? card.statuses : Array(5).fill(false)
                 } : null);
             });
 
-            // NEW: State for cards in the Box
+            // State for cards in the Box
             const [boxCards, setBoxCards] = React.useState(() => {
-                const savedBoxCards = localStorage.getItem('pokemonBoxCards');
+                const savedBoxCards = localStorage.getItem(`${rolePrefix}_pokemonBoxCards`);
                 return savedBoxCards ? JSON.parse(savedBoxCards) : [];
             });
 
-            // NEW: State to control current view ('main' or 'box')
+            // NEW: State for cards in the Negozio (replaces backpackCards)
+            const [negozioCards, setNegozioCards] = React.useState([]); // Will be fetched from Supabase
+            
+            // State to control current view ('main', 'box', or 'negozio')
             const [currentView, setCurrentView] = React.useState('main');
+
+            // States for Supabase data
+            const [pokemonDbCards, setPokemonDbCards] = React.useState([]); // Renamed from dbCards for clarity
+            const [trainersDbCards, setTrainersDbCards] = React.useState([]); // New state for trainer cards
+            const [palestreDbCards, setPalestreDbCards] = React.useState([]); // NEW: State for palestre cards
+            const [isDbLoading, setIsDbLoading] = React.useState(true);
+            const [dbError, setDbError] = React.useState(null);
+
+            // Effect to load cards from Supabase (runs once on mount)
+            React.useEffect(() => {
+                async function getSupabaseCards() {
+                    try {
+                        setIsDbLoading(true);
+                        setDbError(null);
+
+                        // Fetch Pokémon cards
+                        const { data: pokemonData, error: pokemonError } = await supabase
+                            .from('pokemon_cards') // Your table name in Supabase
+                            .select('*');
+
+                        if (pokemonError) {
+                            throw pokemonError;
+                        }
+
+                        // Map Supabase data to the expected card format
+                        const mappedPokemonCards = pokemonData.map(card => ({
+                            id: card.id,
+                            name: card.name,
+                            imageUrl: card.image_url, // Supabase uses image_url
+                            baseHp: card.base_hp,     // Supabase uses base_hp
+                            exp: card.exp,
+                            // Add default values for game-specific fields not in DB
+                            damageTaken: 0,
+                            statuses: Array(5).fill(false),
+                            isActivePokemon: false
+                        }));
+                        setPokemonDbCards(mappedPokemonCards);
+                        console.log("Supabase: Fetched Pokémon cards:", mappedPokemonCards.length);
+
+
+                        // Fetch Trainer cards from 'pokemon_allenatori'
+                        const { data: trainersData, error: trainersError } = await supabase
+                            .from('pokemon_allenatori') // Changed to pokemon_allenatori
+                            .select('*');
+
+                        if (trainersError) {
+                            throw trainersError;
+                        }
+                        
+                        // NEW: Log the raw trainersData to help debug column names
+                        console.log("Supabase: Raw Trainer data from 'pokemon_allenatori':", trainersData);
+
+                        // Map Supabase data to the expected card format for trainer cards
+                        const mappedTrainerCards = trainersData.map(card => ({
+                            id: card.id,
+                            // Use 'name' if it exists, otherwise fallback to 'card_name'
+                            // User must confirm the correct column name for trainer card names
+                            name: card.name || card.card_name, 
+                            imageUrl: card.image_url, // Assuming 'image_url' for trainer cards
+                            baseHp: 0, // Trainer cards don't have HP
+                            exp: 0   // Trainer cards don't have EXP
+                        }));
+                        setTrainersDbCards(mappedTrainerCards);
+                        console.log("Supabase: Fetched Trainer cards from 'pokemon_allenatori':", mappedTrainerCards.length);
+                        console.log("All Trainers DB Cards (from pokemon_allenatori) after mapping:", mappedTrainerCards); // Log all trainer cards, including their names
+
+
+                        // NEW: Fetch Palestre cards
+                        const { data: palestreData, error: palestreError } = await supabase
+                            .from('palestre') // Assuming this is the table name for palestre cards
+                            .select('*');
+
+                        if (palestreError) {
+                            throw palestreError;
+                        }
+
+                        // Map Supabase data to the expected card format for palestre cards
+                        const mappedPalestreCards = palestreData.map(card => ({
+                            id: card.id,
+                            name: card.name || card.card_name, // Assuming 'name' or 'card_name'
+                            imageUrl: card.image_url,
+                            baseHp: 0, // Palestre cards typically don't have HP
+                            exp: 0   // Palestre cards typically don't have EXP
+                        }));
+                        setPalestreDbCards(mappedPalestreCards);
+                        console.log("Supabase: Fetched Palestre cards:", mappedPalestreCards.length);
+
+                        // NEW: Fetch Negozio cards
+                        const { data: negozioData, error: negozioError } = await supabase
+                            .from('negozio') // Assuming this is the table name for negozio cards
+                            .select('*');
+
+                        if (negozioError) {
+                            throw negozioError;
+                        }
+
+                        const mappedNegozioCards = negozioData.map(card => ({
+                            id: card.id,
+                            name: card.name || card.card_name,
+                            imageUrl: card.image_url,
+                            baseHp: card.base_hp || 0,
+                            exp: card.exp || 0
+                        }));
+                        setNegozioCards(mappedNegozioCards);
+                        console.log("Supabase: Fetched Negozio cards:", mappedNegozioCards.length);
+
+
+                        console.log("Supabase: Cards fetched successfully.");
+                    } catch (err) {
+                        console.error("Supabase: Error fetching cards:", err.message);
+                        setDbError(err.message);
+                        setPokemonDbCards(localPokemonCardsDatabase); // Fallback to local data for Pokémon cards on error
+                        setTrainersDbCards([]); // No local fallback for trainer cards by default
+                        setPalestreDbCards([]); // No local fallback for palestre cards by default
+                        setNegozioCards([]); // No local fallback for negozio cards by default
+                    } finally {
+                        setIsDbLoading(false);
+                    }
+                }
+
+                getSupabaseCards();
+            }, []); // Empty dependency array means this effect runs only once after the initial render
 
 
             // State for global currency counter
             const [globalCurrency, setGlobalCurrency] = React.useState(() => {
-                const savedCurrency = localStorage.getItem('globalCurrency');
+                const savedCurrency = localStorage.getItem(`${rolePrefix}_globalCurrency`);
                 return savedCurrency ? parseInt(savedCurrency) : 0;
             });
 
             // State for global medals (Gyms)
             const [gymMedals, setGymMedals] = React.useState(() => {
-                const savedMedals = localStorage.getItem('gymMedals');
+                const savedMedals = localStorage.getItem(`${rolePrefix}_gymMedals`);
                 // Initialize with 8 elements, all false by default
                 return savedMedals ? JSON.parse(savedMedals) : Array(8).fill(false); 
             });
 
             // State for Elite Four medals
             const [eliteFourMedals, setEliteFourMedals] = React.useState(() => {
-                const savedEliteFourMedals = localStorage.getItem('eliteFourMedals');
+                const savedEliteFourMedals = localStorage.getItem(`${rolePrefix}_eliteFourMedals`);
                 // Initialize with 4 elements, all false by default
                 return savedEliteFourMedals ? JSON.parse(savedEliteFourMedals) : Array(4).fill(false);
             });
 
             // State for turn indicator
             const [isMyTurn, setIsMyTurn] = React.useState(() => {
-                const savedTurnState = localStorage.getItem('isMyTurn');
+                const savedTurnState = localStorage.getItem(`${rolePrefix}_isMyTurn`);
                 return savedTurnState ? JSON.parse(savedTurnState) : false; // Default: not your turn
             });
 
@@ -1977,10 +2515,7 @@
             const [attackDiceResults, setAttackDiceResults] = React.useState([]);
             // New state for RETREAT dice roll results
             const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
-            // New state for CAPTURE dice roll results
-            const [captureDiceResults, setCaptureDiceResults] = React.useState([]);
-
-            // State for movement die
+            // State for movement die (removed from UI, but state can remain if needed for other logic)
             const [movementDiceResult, setMovementDiceResult] = React.useState(null);
             const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
 
@@ -1993,35 +2528,34 @@
             const [captureCoinFlipResult, setCaptureCoinFlipResult] = React.useState(null); // 'heads' or 'tails'
             const [captureFinalOutcome, setCaptureFinalOutcome] = React.useState(null); // 'PRESO' or 'FALLITA'
 
-
             // Effect to save cards to localStorage whenever they change
             React.useEffect(() => {
-                localStorage.setItem('gameCards', JSON.stringify(cards));
+                localStorage.setItem(`${rolePrefix}_gameCards`, JSON.stringify(cards));
             }, [cards]);
 
-            // NEW: Effect to save boxCards to localStorage whenever they change
+            // Effect to save boxCards to localStorage whenever they change
             React.useEffect(() => {
-                localStorage.setItem('pokemonBoxCards', JSON.stringify(boxCards));
+                localStorage.setItem(`${rolePrefix}_pokemonBoxCards`, JSON.stringify(boxCards));
             }, [boxCards]);
 
             // Effect to save global currency to localStorage whenever it changes
             React.useEffect(() => {
-                localStorage.setItem('globalCurrency', globalCurrency.toString());
+                localStorage.setItem(`${rolePrefix}_globalCurrency`, globalCurrency.toString());
             }, [globalCurrency]);
 
             // Effect to save Gym medals to localStorage whenever they change
             React.useEffect(() => {
-                localStorage.setItem('gymMedals', JSON.stringify(gymMedals));
+                localStorage.setItem(`${rolePrefix}_gymMedals`, JSON.stringify(gymMedals));
             }, [gymMedals]);
 
             // Effect to save Elite Four medals to localStorage whenever they change
             React.useEffect(() => {
-                localStorage.setItem('eliteFourMedals', JSON.stringify(eliteFourMedals));
+                localStorage.setItem(`${rolePrefix}_eliteFourMedals`, JSON.stringify(eliteFourMedals));
             }, [eliteFourMedals]);
 
             // Effect to save turn state to localStorage
             React.useEffect(() => {
-                localStorage.setItem('isMyTurn', JSON.stringify(isMyTurn));
+                localStorage.setItem(`${rolePrefix}_isMyTurn`, JSON.stringify(isMyTurn));
             }, [isMyTurn]);
 
 
@@ -2047,7 +2581,7 @@
                 // Determine the currently active card for status checks BEFORE state update
                 const currentActiveCard = cards.find(card => card && card.isActivePokemon);
                 
-                // If there's an active card and it's Paralized and it's My Turn, prevent switching
+                // If there's an active card and it's Paralizzato and it's My Turn, prevent switching
                 if (isMyTurn && currentActiveCard && currentActiveCard.statuses[3]) { // statuses[3] is Paralizzato
                     console.log("Cannot change active Pokémon while current active is Paralizzato on your turn.");
                     return; // Block the action
@@ -2238,7 +2772,6 @@
                     if (newTurnState) { // If it's becoming MY turn
                         setAttackDiceResults([]); // Clear results for Attack dice
                         // Not clearing retreatDiceResults here, as per previous instruction to keep them visible during opponent's turn.
-                        setCaptureDiceResults([]); // Clear capture dice results
                         setCaptureCoinFlipResult(null); // Clear capture coin result
                         setCaptureFinalOutcome(null); // Clear capture final outcome
                     } else { // If it's becoming OPPONENT's turn, clear retreat dice
@@ -2247,9 +2780,9 @@
 
                     return newTurnState;
                 });
-            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults, setCaptureDiceResults, setCaptureCoinFlipResult, setCaptureFinalOutcome]); // Added capture related states to dependencies
+            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults, setCaptureCoinFlipResult, setCaptureFinalOutcome]); // Added capture related states to dependencies
 
-            // Function to handle movement die roll
+            // Function to handle movement die roll (kept for completeness, but not used in UI)
             const handleRollMovementDice = React.useCallback(() => {
                 const roll = Math.floor(Math.random() * 6) + 1;
                 setMovementDiceResult(roll);
@@ -2261,7 +2794,7 @@
                 }, 5000); // 5 seconds
             }, []);
 
-            // Function to handle displaying the large dice banner (Attack/Retreat/Capture initial roll)
+            // Function to handle displaying the large dice banner (Attack/Retreat initial roll)
             const handleDisplayDiceBanner = React.useCallback((results) => {
                 setGlobalDiceBannerResults(results);
                 setShowGlobalDiceBanner(true);
@@ -2292,13 +2825,13 @@
                 }, 2000); // Show result for 2 seconds
             }, [toggleMyTurn]);
 
-            // NEW: Function to send a card from a slot to the box
+            // Function to send a card from a slot to the box
             const sendCardToBox = React.useCallback((cardToBox, slotIndex) => {
                 setBoxCards(prevBoxCards => [...prevBoxCards, cardToBox]);
                 updateCardInSlot(slotIndex, null); // Clear the slot after sending to box
             }, [updateCardInSlot]);
 
-            // NEW: Function to recall a card from the box and place it into a slot
+            // Function to recall a card from the box and place it into a slot
             // Modified to also handle deletion from BoxView/RecallFromBoxModal
             const recallCardFromBox = React.useCallback((selectedCard, targetSlotIndex, boxCardIndex, isDeleteOnly = false) => {
                 if (isDeleteOnly) {
@@ -2314,7 +2847,7 @@
                         baseHp: selectedCard.baseHp,
                         damageTaken: 0, // Reset damage when recalling from box
                         statuses: Array(5).fill(false), // Reset statuses when recalling from box
-                        exp: selectedCard.exp,
+                        exp: selectedCard.exp, // Keep exp from the recalled card
                         isActivePokemon: false // Not active by default when recalled
                     });
 
@@ -2327,24 +2860,149 @@
                 }
             }, [updateCardInSlot, setBoxCards]);
 
-            // NEW: Function to delete a card directly from the box (used by BoxView)
+            // Function to delete a card directly from the box (used by BoxView)
             const deleteCardFromBox = React.useCallback((indexToDelete) => {
                 setBoxCards(prevBoxCards => {
                     return prevBoxCards.filter((_, i) => i !== indexToDelete);
                 });
             }, []);
 
+            // NEW: Function to add a card to the backpack (no longer used by Negozio, but kept in case needed elsewhere)
+            const addCardToBackpack = React.useCallback((cardDataToAdd) => {
+                // This function is for the "old" backpack logic, not for Negozio
+                // Keeping it here for reference/compatibility if other parts still call it.
+                // The Negozio now just displays from Supabase.
+                console.warn("addCardToBackpack called. This function is for legacy backpack logic and is not used by Negozio.");
+                // If you want to "buy" cards from Negozio and add them to the player's inventory,
+                // you would need a new function here that adds to `cards` or `boxCards`
+                // and updates globalCurrency.
+            }, []);
+
+            // NEW: Function to update quantity of a card in the backpack (no longer used by Negozio)
+            const updateBackpackCardQuantity = React.useCallback((cardImageUrl, amount) => {
+                console.warn("updateBackpackCardQuantity called. This function is for legacy backpack logic and is not used by Negozio.");
+            }, []);
+
+
+            // NEW: Function to fetch a random card from a specified Supabase table
+            const fetchRandomCardFromTable = React.useCallback(async (tableName) => {
+                try {
+                    // Get the total count of rows in the table
+                    const { count, error: countError } = await supabase
+                        .from(tableName)
+                        .select('*', { count: 'exact', head: true });
+
+                    if (countError) {
+                        throw countError;
+                    }
+
+                    if (count === 0) {
+                        throw new Error(`La tabella '${tableName}' è vuota.`);
+                    }
+
+                    // Generate a random index
+                    const randomIndex = Math.floor(Math.random() * count);
+
+                    // Fetch one row at the random index
+                    const { data, error: fetchError } = await supabase
+                        .from(tableName)
+                        .select('*')
+                        .range(randomIndex, randomIndex + 1); // Fetch just one record
+
+                    if (fetchError) {
+                        throw fetchError;
+                    }
+
+                    if (data && data.length > 0) {
+                        const randomCard = data[0];
+                        // Map Supabase data to the expected card format
+                        return {
+                            id: randomCard.id,
+                            name: randomCard.name || randomCard.card_name || 'Carta Casuale', // Handle different column names
+                            imageUrl: randomCard.image_url,
+                            baseHp: randomCard.base_hp || 0, // Default to 0 if not present (e.g., for trainer cards)
+                            exp: randomCard.exp || 0, // Default to 0 if not present
+                            damageTaken: 0,
+                            statuses: Array(5).fill(false),
+                            isActivePokemon: false
+                        };
+                    } else {
+                        throw new Error("Nessuna carta trovata all'indice casuale.");
+                    }
+                } catch (error) {
+                    console.error("Errore durante il recupero della carta casuale dalla tabella:", error);
+                    throw error; // Re-throw to be caught by the calling component
+                }
+            }, []);
+
+            // NEW: Function to handle Palestre card selection and load corresponding trainer cards
+            const handlePalestreCardSelection = React.useCallback(async (palestreCard) => {
+                console.log("Palestra card selected:", palestreCard.name);
+                const trainerNameBase = palestreCard.name; // e.g., "Brock"
+                // Assuming trainer cards related to a Gym are named like "GymLeaderName-1" and "GymLeaderName-2"
+                // For example, if palestreCard.name is "Brock", it will look for "Brock-1" and "Brock-2"
+                const trainer1Name = trainerNameBase + "-1";
+                const trainer2Name = trainerNameBase + "-2";
+
+                console.log("Looking for trainer cards:", trainer1Name, "and", trainer2Name);
+                console.log("All Trainers DB Cards (from pokemon_allenatori) for debug:", trainersDbCards); // Log all trainer cards for inspection
+
+                const trainerCard1 = trainersDbCards.find(card => card.name === trainer1Name);
+                const trainerCard2 = trainersDbCards.find(card => card.name === trainer2Name);
+
+                // Apply card 1 to slot 0
+                if (trainerCard1) {
+                    console.log("Found trainer card 1:", trainerCard1.name);
+                    updateCardInSlot(0, {
+                        imageUrl: trainerCard1.imageUrl,
+                        baseHp: 0, // Trainer cards usually have 0 HP
+                        damageTaken: 0,
+                        statuses: Array(5).fill(false),
+                        exp: 0, // Trainer cards usually have 0 EXP
+                        isActivePokemon: false
+                    });
+                } else {
+                    console.warn(`Carta allenatore ${trainer1Name} non trovata. Impossibile caricare nel primo slot.`);
+                    updateCardInSlot(0, null); // Clear slot if not found
+                    // Ideally, show a user-facing notification here.
+                }
+
+                // Apply card 2 to slot 1
+                if (trainerCard2) {
+                    console.log("Found trainer card 2:", trainerCard2.name);
+                    updateCardInSlot(1, {
+                        imageUrl: trainerCard2.imageUrl,
+                        baseHp: 0, // Trainer cards usually have 0 HP
+                        damageTaken: 0,
+                        statuses: Array(5).fill(false),
+                        exp: 0, // Trainer cards usually have 0 EXP
+                        isActivePokemon: false
+                    });
+                } else {
+                    console.warn(`Carta allenatore ${trainer2Name} non trovata. Impossibile caricare nel secondo slot.`);
+                    updateCardInSlot(1, null); // Clear slot if not found
+                    // Ideally, show a user-facing notification here.
+                }
+            }, [trainersDbCards, updateCardInSlot]); // Dependencies: trainersDbCards, updateCardInSlot
+
 
             return (
                 <>
+                    <h1 className="text-5xl font-extrabold text-white mb-8 text-center drop-shadow-lg">POKÉMON DUEL (PLAYER)</h1>
+                    <button
+                        onClick={() => onSwitchRole('master')}
+                        className="btn-theme btn-gray px-6 py-3 text-lg mt-4 mb-4"
+                    >
+                        Passa a Master
+                    </button>
                     {currentView === 'main' && (
                         <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4 relative">
                             {/* Top Controls: All stacked vertically for narrow screens */}
                             <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
                                 {/* Turn Indicator */}
-                                <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
+                                <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} role="player" />
 
-                                {/* Container for ATTACK, RETREAT and CAPTURE dice (now vertical) */}
+                                {/* Container for ATTACK, RETREAT dice (now vertical) */}
                                 <div className="flex flex-col items-center gap-4 w-full">
                                     {/* Roll ATTACK Dice */}
                                     <DiceRoller
@@ -2368,22 +3026,22 @@
                                         onDiceRollComplete={toggleMyTurn} /* Added for Retreat to end turn */
                                         isMyTurn={isMyTurn} /* Pass isMyTurn to DiceRoller */
                                     />
-                                    {/* Roll CAPTURA Dice */}
+                                     {/* Capture Dice Roller */}
                                     <DiceRoller
                                         title="CATTURA"
-                                        isAttackRoller={false} /* Not an attack roller */
-                                        isCaptureRoller={true} /* New prop for capture logic */
-                                        results={captureDiceResults}
-                                        onSetResults={setCaptureDiceResults}
-                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
-                                        onDiceRollComplete={toggleMyTurn} /* For immediate fail, otherwise handled by coin flip */
-                                        onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded} /* New prop for coin flip trigger */
-                                        isMyTurn={isMyTurn} /* Pass isMyTurn to DiceRoller */
+                                        isAttackRoller={false}
+                                        isCaptureRoller={true}
+                                        results={[]} // Capture dice only shows one result, handled by CaptureCoinFlipModal
+                                        onSetResults={() => {}} 
+                                        onDisplayResultsForBanner={() => {}}
+                                        isMyTurn={isMyTurn}
+                                        onDiceRollComplete={() => {}} // Turn end handled by coin flip result
+                                        onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded}
                                     />
                                 </div>
                                 
-                                {/* Movement Die */}
-                                <MovementDiceRoller onRoll={handleRollMovementDice} />
+                                {/* Movement Die - Removed */}
+                                {/* <MovementDiceRoller onRoll={handleRollMovementDice} /> */}
 
                                 {/* Global Currency Counter */}
                                 <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
@@ -2409,7 +3067,7 @@
                                     </button>
                                 </div>
 
-                                {/* NEW: Button to go to Box - Moved here */}
+                                {/* Button to go to Box */}
                                 <button
                                     onClick={() => setCurrentView('box')}
                                     className="btn-theme btn-purple px-6 py-3 text-lg mt-4" /* Added mt-4 for spacing */
@@ -2417,15 +3075,23 @@
                                     VAI AL BOX ({boxCards.length})
                                 </button>
 
+                                {/* NEW: Button to go to Negozio (replaces Backpack) */}
+                                <button
+                                    onClick={() => setCurrentView('negozio')}
+                                    className="btn-theme btn-orange px-6 py-3 text-lg mt-4" /* Added mt-4 for spacing */
+                                >
+                                    NEGOZIO
+                                </button>
+                                
                                 {/* Coin flip banner (for turn or confusion) */}
                                 {showCoinFlipBanner && (
                                     <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
-                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
+                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipType === 'confusion' && coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Large banner for Movement die */}
+                            {/* Large banner for Movement die (removed from UI, but banner state can remain) */}
                             {showMovementDiceBanner && movementDiceResult && (
                                 <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
                                     <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
@@ -2434,7 +3100,7 @@
                                 </div>
                             )}
 
-                            {/* Large banner for ATTACK/RETREAT/CAPTURE initial dice roll */}
+                            {/* Large banner for ATTACK/RETREAT initial dice roll */}
                             {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
                                 <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
                                     <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
@@ -2453,8 +3119,8 @@
                                 finalOutcome={captureFinalOutcome}
                             />
 
-                            {/* Container for card slots */}
-                            {/* Always a column for vertical screens */}
+                            {/* Contenitore per gli slot delle carte */}
+                            {/* Sempre una colonna per schermi verticali */}
                             <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
                                 {cards.map((cardData, index) => (
                                     <CardSlot
@@ -2468,16 +3134,24 @@
                                         onSendToBox={sendCardToBox} /* Pass the new function */
                                         onRecallFromBox={recallCardFromBox} /* Pass the new recall function */
                                         boxCards={boxCards} /* Pass boxCards for the recall modal */
+                                        pokemonDbCards={pokemonDbCards} /* Passed Pokémon cards here */
+                                        trainersDbCards={trainersDbCards} /* Passed trainers cards here */
+                                        palestreDbCards={palestreDbCards} /* NEW: Passed palestre cards here */
+                                        isDbLoading={isDbLoading} /* Passed from App to CardSlot */
+                                        dbError={dbError} /* Passed from App to CardSlot */
+                                        onSelectTableAndFetchRandom={fetchRandomCardFromTable} /* New prop for random fetch */
+                                        onSelectPalestreCard={handlePalestreCardSelection} /* NEW: Pass the new function for Palestre cards */
+                                        role="player" /* Pass role to CardSlot */
                                     />
                                 ))}
                             </div>
 
-                            {/* Container for Gym Medals in the bottom of the page */}
+                            {/* Contenitore per le Medaglie in fondo alla pagina */}
                             <div className="w-full flex justify-center mt-8">
                                 <MedalDisplay gymMedals={gymMedals} onToggleMedal={toggleGymMedal} />
                             </div>
 
-                            {/* Container for Elite Four Medals */}
+                            {/* Contenitore per le Medaglie Superquattro */}
                             <div className="w-full flex justify-center mt-8 pb-20"> {/* Increased pb-20 for more space */}
                                 <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={toggleEliteFourMedal} />
                             </div>
@@ -2489,14 +3163,759 @@
                             boxCards={boxCards} 
                             onBackToMain={() => setCurrentView('main')} 
                             onDeleteCardFromBox={deleteCardFromBox} /* Pass the new delete function */
+                            role="player" /* Pass role to BoxView */
+                        />
+                    )}
+
+                    {currentView === 'negozio' && (
+                        <NegozioView
+                            negozioCards={negozioCards}
+                            onBackToMain={() => setCurrentView('main')}
+                            isDbLoading={isDbLoading}
+                            dbError={dbError}
+                            role="player" /* Pass role to NegozioView */
                         />
                     )}
                 </>
             );
         }
+        // --------------------------------------------------------------------------------------
+        // END - PLAYER APP COMPONENT
+        // --------------------------------------------------------------------------------------
 
-        // Render the React App component in the 'root' element
-        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+        // --------------------------------------------------------------------------------------
+        // START - MASTER APP COMPONENT
+        // This component contains all the game logic for the "Master" role.
+        // It saves/loads its data using 'master_' prefixes in localStorage.
+        // --------------------------------------------------------------------------------------
+        function MasterApp({ onSwitchRole }) {
+            const rolePrefix = 'master'; // Unique prefix for localStorage keys
+
+            // Initialize card state from localStorage or an empty array of 6 slots
+            const [cards, setCards] = React.useState(() => {
+                const savedCards = localStorage.getItem(`${rolePrefix}_gameCards`);
+                const initialCards = savedCards ? JSON.parse(savedCards) : Array(6).fill(null);
+                return initialCards.map(card => card ? { 
+                    ...card, 
+                    isActivePokemon: card.isActivePokemon || false,
+                    statuses: card.statuses && card.statuses.length === 5 ? card.statuses : Array(5).fill(false)
+                } : null);
+            });
+
+            // State for cards in the Box
+            const [boxCards, setBoxCards] = React.useState(() => {
+                const savedBoxCards = localStorage.getItem(`${rolePrefix}_pokemonBoxCards`);
+                return savedBoxCards ? JSON.parse(savedBoxCards) : [];
+            });
+
+            // NEW: State for cards in the Negozio (replaces backpackCards)
+            const [negozioCards, setNegozioCards] = React.useState([]); // Will be fetched from Supabase
+            
+            // State to control current view ('main', 'box', or 'negozio')
+            const [currentView, setCurrentView] = React.useState('main');
+
+            // States for Supabase data
+            const [pokemonDbCards, setPokemonDbCards] = React.useState([]); // Renamed from dbCards for clarity
+            const [trainersDbCards, setTrainersDbCards] = React.useState([]); // New state for trainer cards
+            const [palestreDbCards, setPalestreDbCards] = React.useState([]); // NEW: State for palestre cards
+            const [isDbLoading, setIsDbLoading] = React.useState(true);
+            const [dbError, setDbError] = React.useState(null);
+
+            // Effect to load cards from Supabase (runs once on mount)
+            React.useEffect(() => {
+                async function getSupabaseCards() {
+                    try {
+                        setIsDbLoading(true);
+                        setDbError(null);
+
+                        // Fetch Pokémon cards
+                        const { data: pokemonData, error: pokemonError } = await supabase
+                            .from('pokemon_cards') // Your table name in Supabase
+                            .select('*');
+
+                        if (pokemonError) {
+                            throw pokemonError;
+                        }
+
+                        // Map Supabase data to the expected card format
+                        const mappedPokemonCards = pokemonData.map(card => ({
+                            id: card.id,
+                            name: card.name,
+                            imageUrl: card.image_url, // Supabase uses image_url
+                            baseHp: card.base_hp,     // Supabase uses base_hp
+                            exp: card.exp,
+                            // Add default values for game-specific fields not in DB
+                            damageTaken: 0,
+                            statuses: Array(5).fill(false),
+                            isActivePokemon: false
+                        }));
+                        setPokemonDbCards(mappedPokemonCards);
+                        console.log("Supabase: Fetched Pokémon cards (Master):", mappedPokemonCards.length);
+
+
+                        // Fetch Trainer cards from 'pokemon_allenatori'
+                        const { data: trainersData, error: trainersError } = await supabase
+                            .from('pokemon_allenatori') // Changed to pokemon_allenatori
+                            .select('*');
+
+                        if (trainersError) {
+                            throw trainersError;
+                        }
+                        
+                        console.log("Supabase: Raw Trainer data from 'pokemon_allenatori' (Master):", trainersData);
+
+                        // Map Supabase data to the expected card format for trainer cards
+                        const mappedTrainerCards = trainersData.map(card => ({
+                            id: card.id,
+                            name: card.name || card.card_name, 
+                            imageUrl: card.image_url, 
+                            baseHp: 0, 
+                            exp: 0   
+                        }));
+                        setTrainersDbCards(mappedTrainerCards);
+                        console.log("Supabase: Fetched Trainer cards from 'pokemon_allenatori' (Master):", mappedTrainerCards.length);
+
+
+                        // NEW: Fetch Palestre cards
+                        const { data: palestreData, error: palestreError } = await supabase
+                            .from('palestre') // Assuming this is the table name for palestre cards
+                            .select('*');
+
+                        if (palestreError) {
+                            throw palestreError;
+                        }
+
+                        // Map Supabase data to the expected card format for palestre cards
+                        const mappedPalestreCards = palestreData.map(card => ({
+                            id: card.id,
+                            name: card.name || card.card_name, 
+                            imageUrl: card.image_url,
+                            baseHp: 0, 
+                            exp: 0   
+                        }));
+                        setPalestreDbCards(mappedPalestreCards);
+                        console.log("Supabase: Fetched Palestre cards (Master):", mappedPalestreCards.length);
+
+                        // NEW: Fetch Negozio cards
+                        const { data: negozioData, error: negozioError } = await supabase
+                            .from('negozio') // Assuming this is the table name for negozio cards
+                            .select('*');
+
+                        if (negozioError) {
+                            throw negozioError;
+                        }
+
+                        const mappedNegozioCards = negozioData.map(card => ({
+                            id: card.id,
+                            name: card.name || card.card_name,
+                            imageUrl: card.image_url,
+                            baseHp: card.base_hp || 0,
+                            exp: card.exp || 0
+                        }));
+                        setNegozioCards(mappedNegozioCards);
+                        console.log("Supabase: Fetched Negozio cards (Master):", mappedNegozioCards.length);
+
+
+                        console.log("Supabase: Cards fetched successfully (Master).");
+                    } catch (err) {
+                        console.error("Supabase: Error fetching cards (Master):", err.message);
+                        setDbError(err.message);
+                        setPokemonDbCards(localPokemonCardsDatabase); // Fallback to local data for Pokémon cards on error
+                        setTrainersDbCards([]); 
+                        setPalestreDbCards([]); 
+                        setNegozioCards([]); 
+                    } finally {
+                        setIsDbLoading(false);
+                    }
+                }
+
+                getSupabaseCards();
+            }, []); 
+
+
+            // State for global currency counter
+            const [globalCurrency, setGlobalCurrency] = React.useState(() => {
+                const savedCurrency = localStorage.getItem(`${rolePrefix}_globalCurrency`);
+                return savedCurrency ? parseInt(savedCurrency) : 0;
+            });
+
+            // State for global medals (Gyms)
+            const [gymMedals, setGymMedals] = React.useState(() => {
+                const savedMedals = localStorage.getItem(`${rolePrefix}_gymMedals`);
+                return savedMedals ? JSON.parse(savedMedals) : Array(8).fill(false); 
+            });
+
+            // State for Elite Four medals
+            const [eliteFourMedals, setEliteFourMedals] = React.useState(() => {
+                const savedEliteFourMedals = localStorage.getItem(`${rolePrefix}_eliteFourMedals`);
+                return savedEliteFourMedals ? JSON.parse(savedEliteFourMedals) : Array(4).fill(false);
+            });
+
+            // State for turn indicator (Master doesn't directly manage turn, but it's kept for consistency)
+            const [isMyTurn, setIsMyTurn] = React.useState(() => {
+                const savedTurnState = localStorage.getItem(`${rolePrefix}_isMyTurn`);
+                return savedTurnState ? JSON.parse(savedTurnState) : false; 
+            });
+
+            // State for coin flip banner (for both asleep and confused)
+            const [showCoinFlipBanner, setShowCoinFlipBanner] = React.useState(false);
+            const [coinFlipResult, setCoinFlipResult] = React.useState('');
+            const [coinFlipType, setCoinFlipType] = React.useState(''); 
+
+            // New state for ATTACK dice roll results
+            const [attackDiceResults, setAttackDiceResults] = React.useState([]);
+            // New state for RETREAT dice roll results
+            const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
+            // State for movement die (removed from UI, but state can remain if needed for other logic)
+            const [movementDiceResult, setMovementDiceResult] = React.useState(null);
+            const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
+
+            // State for the large dice banner (Attack/Retreat/Capture initial roll)
+            const [showGlobalDiceBanner, setShowGlobalDiceBanner] = React.useState(false);
+            const [globalDiceBannerResults, setGlobalDiceBannerResults] = React.useState([]);
+
+            // New states for Capture Coin Flip Modal
+            const [showCaptureCoinFlipModal, setShowCaptureCoinFlipModal] = React.useState(false);
+            const [captureCoinFlipResult, setCaptureCoinFlipResult] = React.useState(null); 
+            const [captureFinalOutcome, setCaptureFinalOutcome] = React.useState(null); 
+
+
+            // Effects to load states from localStorage whenever the component mounts/updates (Master-specific)
+            React.useEffect(() => {
+                console.log(`Loading data for mode: ${rolePrefix}`);
+                const savedCards = localStorage.getItem(`${rolePrefix}_gameCards`);
+                setCards(savedCards ? JSON.parse(savedCards).map(card => card ? { 
+                    ...card, 
+                    isActivePokemon: card.isActivePokemon || false,
+                    statuses: card.statuses && card.statuses.length === 5 ? card.statuses : Array(5).fill(false)
+                } : null) : Array(6).fill(null));
+
+                const savedBoxCards = localStorage.getItem(`${rolePrefix}_pokemonBoxCards`);
+                setBoxCards(savedBoxCards ? JSON.parse(savedBoxCards) : []);
+
+                const savedCurrency = localStorage.getItem(`${rolePrefix}_globalCurrency`);
+                setGlobalCurrency(savedCurrency ? parseInt(savedCurrency) : 0);
+
+                const savedMedals = localStorage.getItem(`${rolePrefix}_gymMedals`);
+                setGymMedals(savedMedals ? JSON.parse(savedMedals) : Array(8).fill(false));
+
+                const savedEliteFourMedals = localStorage.getItem(`${rolePrefix}_eliteFourMedals`);
+                setEliteFourMedals(savedEliteFourMedals ? JSON.parse(savedEliteFourMedals) : Array(4).fill(false));
+
+                const savedTurnState = localStorage.getItem(`${rolePrefix}_isMyTurn`);
+                setIsMyTurn(savedTurnState ? JSON.parse(savedTurnState) : false);
+            }, [rolePrefix]); // Depend on rolePrefix to ensure re-load on role switch
+
+            // Effects to save states to localStorage (Master-specific)
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_gameCards`, JSON.stringify(cards));
+            }, [cards, rolePrefix]);
+
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_pokemonBoxCards`, JSON.stringify(boxCards));
+            }, [boxCards, rolePrefix]);
+
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_globalCurrency`, globalCurrency.toString());
+            }, [globalCurrency, rolePrefix]);
+
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_gymMedals`, JSON.stringify(gymMedals));
+            }, [gymMedals, rolePrefix]);
+
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_eliteFourMedals`, JSON.stringify(eliteFourMedals));
+            }, [eliteFourMedals, rolePrefix]);
+
+            React.useEffect(() => {
+                localStorage.setItem(`${rolePrefix}_isMyTurn`, JSON.stringify(isMyTurn));
+            }, [isMyTurn, rolePrefix]);
+
+
+            /**
+             * Updates the card data in a specific slot.
+             * @param {number} index - The index of the card slot (0-5).
+             * @param {object | null} cardData - The new card data or null to clear the slot.
+             */
+            const updateCardInSlot = React.useCallback((index, cardData) => {
+                setCards(prevCards => {
+                    const newCards = [...prevCards];
+                    newCards[index] = cardData;
+                    return newCards;
+                });
+            }, []);
+
+            /**
+             * Handles toggling the "active" status for a Pokémon.
+             * Ensures that only one Pokémon is active at a time.
+             * @param {number} clickedSlotIndex - The index of the clicked slot.
+             */
+            const handleActivePokemonToggle = React.useCallback((clickedSlotIndex) => {
+                // Master app can toggle any card active/inactive without turn restrictions
+                setCards(prevCards => {
+                    return prevCards.map((card, idx) => {
+                        if (!card) return null;
+
+                        const isClickedCard = (idx === clickedSlotIndex);
+                        let newIsActive = card.isActivePokemon;
+                        let newStatuses = [...card.statuses];
+
+                        if (isClickedCard) {
+                            newIsActive = !card.isActivePokemon;
+                            if (!newIsActive) {
+                                newStatuses = Array(5).fill(false);
+                            }
+                        } else if (card.isActivePokemon) {
+                            newIsActive = false;
+                            newStatuses = Array(5).fill(false);
+                        }
+
+                        return {
+                            ...card,
+                            isActivePokemon: newIsActive,
+                            statuses: newStatuses
+                        };
+                    });
+                });
+            }, []);
+
+
+            // Handles manual change of global currency input (Master can always adjust)
+            const handleGlobalCurrencyChange = (event) => {
+                const value = parseInt(event.target.value) || 0;
+                setGlobalCurrency(value);
+            };
+
+            // Handles incrementing/decrementing global currency (Master can always adjust)
+            const adjustGlobalCurrency = (amount) => {
+                setGlobalCurrency(prevCurrency => Math.max(0, prevCurrency + amount));
+            };
+
+            // Toggles the state of a Gym medal (Master can always toggle)
+            const toggleGymMedal = (index) => {
+                setGymMedals(prevMedals => {
+                    const newMedals = [...prevMedals];
+                    newMedals[index] = !newMedals[index];
+                    return newMedals;
+                });
+            };
+
+            // Toggles the state of an Elite Four medal (Master can always toggle)
+            const toggleEliteFourMedal = (index) => {
+                setEliteFourMedals(prevMedals => {
+                    const newMedals = [...prevMedals];
+                    newMedals[index] = !newMedals[index];
+                    return newMedals;
+                });
+            };
+
+            // Master app does not have dice roll restrictions
+            const diceRollDisableStatus = false; 
+
+            // Master app does not have confusion logic for dice rolls
+            const handleConfusedRollAttempt = React.useCallback(async () => {
+                return true; // Always proceed for master
+            }, []);
+
+            // Master app can toggle turn freely
+            const toggleMyTurn = React.useCallback(() => {
+                setIsMyTurn(prevIsMyTurn => !prevIsMyTurn);
+                // Master app doesn't apply status effects on turn change
+                setAttackDiceResults([]); // Clear dice results
+                setRetreatDiceResults([]);
+                setCaptureCoinFlipResult(null); 
+                setCaptureFinalOutcome(null); 
+            }, []);
+
+            const handleRollMovementDice = React.useCallback(() => {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                setMovementDiceResult(roll);
+                setShowMovementDiceBanner(true);
+                setTimeout(() => {
+                    setShowMovementDiceBanner(false);
+                    setMovementDiceResult(null);
+                }, 5000);
+            }, []);
+
+            const handleDisplayDiceBanner = React.useCallback((results) => {
+                setGlobalDiceBannerResults(results);
+                setShowGlobalDiceBanner(true);
+                setTimeout(() => {
+                    setShowGlobalDiceBanner(false);
+                    setGlobalDiceBannerResults([]);
+                }, 3000);
+            }, []);
+
+            const handleCaptureCoinFlipNeeded = React.useCallback(() => {
+                setShowCaptureCoinFlipModal(true);
+                setCaptureCoinFlipResult(null);
+                setCaptureFinalOutcome(null);
+            }, []);
+
+            const performCaptureCoinFlip = React.useCallback(() => {
+                const result = Math.random() < 0.5 ? 'heads' : 'tails';
+                setCaptureCoinFlipResult(result);
+                const final = result === 'tails' ? 'PRESO' : 'FALLITA';
+                setCaptureFinalOutcome(final);
+
+                setTimeout(() => {
+                    setShowCaptureCoinFlipModal(false);
+                    // Master doesn't end turn after capture coin flip, it's just a display tool
+                }, 2000); 
+            }, []);
+
+
+            const sendCardToBox = React.useCallback((cardToBox, slotIndex) => {
+                setBoxCards(prevBoxCards => [...prevBoxCards, cardToBox]);
+                updateCardInSlot(slotIndex, null); 
+            }, [updateCardInSlot]);
+
+            const recallCardFromBox = React.useCallback((selectedCard, targetSlotIndex, boxCardIndex, isDeleteOnly = false) => {
+                if (isDeleteOnly) {
+                    setBoxCards(prevBoxCards => {
+                        const newBoxCards = [...prevBoxCards];
+                        newBoxCards.splice(boxCardIndex, 1); 
+                        return newBoxCards;
+                    });
+                } else {
+                    updateCardInSlot(targetSlotIndex, {
+                        imageUrl: selectedCard.imageUrl,
+                        baseHp: selectedCard.baseHp,
+                        damageTaken: 0, 
+                        statuses: Array(5).fill(false), 
+                        exp: selectedCard.exp, 
+                        isActivePokemon: false 
+                    });
+
+                    setBoxCards(prevBoxCards => {
+                        const newBoxCards = [...prevBoxCards];
+                        newBoxCards.splice(boxCardIndex, 1); 
+                        return newBoxCards;
+                    });
+                }
+            }, [updateCardInSlot, setBoxCards]);
+
+            const deleteCardFromBox = React.useCallback((indexToDelete) => {
+                setBoxCards(prevBoxCards => {
+                    return prevBoxCards.filter((_, i) => i !== indexToDelete);
+                });
+            }, []);
+
+            const fetchRandomCardFromTable = React.useCallback(async (tableName) => {
+                try {
+                    const { count, error: countError } = await supabase
+                        .from(tableName)
+                        .select('*', { count: 'exact', head: true });
+
+                    if (countError) {
+                        throw countError;
+                    }
+
+                    if (count === 0) {
+                        throw new Error(`La tabella '${tableName}' è vuota.`);
+                    }
+
+                    const randomIndex = Math.floor(Math.random() * count);
+
+                    const { data, error: fetchError } = await supabase
+                        .from(tableName)
+                        .select('*')
+                        .range(randomIndex, randomIndex + 1);
+
+                    if (fetchError) {
+                        throw fetchError;
+                    }
+
+                    if (data && data.length > 0) {
+                        const randomCard = data[0];
+                        return {
+                            id: randomCard.id,
+                            name: randomCard.name || randomCard.card_name || 'Carta Casuale',
+                            imageUrl: randomCard.image_url,
+                            baseHp: randomCard.base_hp || 0,
+                            exp: randomCard.exp || 0,
+                            damageTaken: 0,
+                            statuses: Array(5).fill(false),
+                            isActivePokemon: false
+                        };
+                    } else {
+                        throw new Error("Nessuna carta trovata all'indice casuale.");
+                    }
+                } catch (error) {
+                    console.error("Errore durante il recupero della carta casuale dalla tabella:", error);
+                    throw error;
+                }
+            }, []);
+
+            const handlePalestreCardSelection = React.useCallback(async (palestreCard) => {
+                console.log("Palestra card selected (Master):", palestreCard.name);
+                const trainerNameBase = palestreCard.name; 
+                const trainer1Name = trainerNameBase + "-1";
+                const trainer2Name = trainerNameBase + "-2";
+
+                console.log("Looking for trainer cards (Master):", trainer1Name, "and", trainer2Name);
+
+                const trainerCard1 = trainersDbCards.find(card => card.name === trainer1Name);
+                const trainerCard2 = trainersDbCards.find(card => card.name === trainer2Name);
+
+                if (trainerCard1) {
+                    console.log("Found trainer card 1 (Master):", trainerCard1.name);
+                    updateCardInSlot(0, {
+                        imageUrl: trainerCard1.imageUrl,
+                        baseHp: 0,
+                        damageTaken: 0,
+                        statuses: Array(5).fill(false),
+                        exp: 0,
+                        isActivePokemon: false
+                    });
+                } else {
+                    console.warn(`Carta allenatore ${trainer1Name} non trovata (Master). Impossibile caricare nel primo slot.`);
+                    updateCardInSlot(0, null);
+                }
+
+                if (trainerCard2) {
+                    console.log("Found trainer card 2 (Master):", trainerCard2.name);
+                    updateCardInSlot(1, {
+                        imageUrl: trainerCard2.imageUrl,
+                        baseHp: 0,
+                        damageTaken: 0,
+                        statuses: Array(5).fill(false),
+                        exp: 0,
+                        isActivePokemon: false
+                    });
+                } else {
+                    console.warn(`Carta allenatore ${trainer2Name} non trovata (Master). Impossibile caricare nel secondo slot.`);
+                    updateCardInSlot(1, null);
+                }
+            }, [trainersDbCards, updateCardInSlot]); 
+
+
+            return (
+                <>
+                    <h1 className="text-5xl font-extrabold text-white mb-8 text-center drop-shadow-lg">POKÉMON DUEL (MASTER)</h1>
+                    <button
+                        onClick={() => onSwitchRole('player')}
+                        className="btn-theme btn-gray px-6 py-3 text-lg mt-4 mb-4"
+                    >
+                        Passa a Player
+                    </button>
+                    {currentView === 'main' && (
+                        <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-red-600 to-purple-700 p-4 relative"> {/* Master has a different background color */}
+                            {/* Top Controls: All stacked vertically for narrow screens */}
+                            <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
+                                {/* Turn Indicator (disabled in Master, but still shown) */}
+                                <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} role="master" />
+
+                                {/* Container for ATTACK, RETREAT dice (now vertical) */}
+                                <div className="flex flex-col items-center gap-4 w-full">
+                                    {/* Roll ATTACK Dice */}
+                                    <DiceRoller
+                                        title="ATTACCA"
+                                        isAttackRoller={true}
+                                        isDiceRollDisabled={diceRollDisableStatus}
+                                        onConfusedRollAttempt={handleConfusedRollAttempt}
+                                        isMyTurn={true} /* Master can always roll dice */
+                                        onDiceRollComplete={() => {}} /* Master doesn't end turn with dice */
+                                        results={attackDiceResults}
+                                        onSetResults={setAttackDiceResults}
+                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                    />
+                                    {/* Roll RETREAT Dice */}
+                                    <DiceRoller
+                                        title="RITIRATA"
+                                        isAttackRoller={false}
+                                        results={retreatDiceResults}
+                                        onSetResults={setRetreatDiceResults}
+                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        onDiceRollComplete={() => {}} 
+                                        isMyTurn={true} 
+                                    />
+                                    {/* Capture Dice Roller (Master can use it) */}
+                                    <DiceRoller
+                                        title="CATTURA"
+                                        isAttackRoller={false}
+                                        isCaptureRoller={true}
+                                        results={[]} 
+                                        onSetResults={() => {}} 
+                                        onDisplayResultsForBanner={() => {}}
+                                        isMyTurn={true}
+                                        onDiceRollComplete={() => {}}
+                                        onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded}
+                                    />
+                                </div>
+                                
+                                {/* Movement Die - Removed */}
+                                {/* <MovementDiceRoller onRoll={handleRollMovementDice} /> */}
+
+                                {/* Global Currency Counter */}
+                                <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
+                                    <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
+                                    <button
+                                        onClick={() => adjustGlobalCurrency(-1)}
+                                        className="btn-theme btn-red px-2 py-0.5 text-base"
+                                    >
+                                        -
+                                    </button>
+                                    <input
+                                        type="number"
+                                        value={globalCurrency}
+                                        onChange={handleGlobalCurrencyChange}
+                                        className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1 shadow-inner focus:outline-none focus:ring-2 focus:ring-yellow-500 no-spinner"
+                                        min="0"
+                                    />
+                                    <button
+                                        onClick={() => adjustGlobalCurrency(1)}
+                                        className="btn-theme btn-green px-2 py-0.5 text-base"
+                                        >
+                                        +
+                                    </button>
+                                </div>
+
+                                {/* Button to go to Box */}
+                                <button
+                                    onClick={() => setCurrentView('box')}
+                                    className="btn-theme btn-purple px-6 py-3 text-lg mt-4" 
+                                >
+                                    VAI AL BOX ({boxCards.length})
+                                </button>
+
+                                {/* NEW: Button to go to Negozio (replaces Backpack) */}
+                                <button
+                                    onClick={() => setCurrentView('negozio')}
+                                    className="btn-theme btn-orange px-6 py-3 text-lg mt-4" 
+                                >
+                                    NEGOZIO
+                                </button>
+
+                                {/* Coin flip banner (for turn or confusion) */}
+                                {showCoinFlipBanner && (
+                                    <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
+                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipType === 'confusion' && coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Large banner for Movement die (removed from UI, but banner state can remain) */}
+                            {showMovementDiceBanner && movementDiceResult && (
+                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
+                                        {diceFaces[movementDiceResult]}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Large banner for ATTACK/RETREAT initial dice roll */}
+                            {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
+                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
+                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
+                                        {globalDiceBannerResults.map((result, index) => (
+                                            <span key={index}>{diceFaces[result]}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Capture Coin Flip Modal */}
+                            <CaptureCoinFlipModal
+                                isOpen={showCaptureCoinFlipModal}
+                                onFlipCoin={performCaptureCoinFlip}
+                                coinResult={captureCoinFlipResult}
+                                finalOutcome={captureFinalOutcome}
+                            />
+
+                            {/* Contenitore per gli slot delle carte */}
+                            <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
+                                {cards.map((cardData, index) => (
+                                    <CardSlot
+                                        key={index} 
+                                        slotIndex={index}
+                                        cardData={cardData} 
+                                        onUpdateCard={updateCardInSlot}
+                                        onToggleActivePokemon={handleActivePokemonToggle} 
+                                        isMyTurn={isMyTurn} 
+                                        activeCardParalyzed={false} /* Master doesn't care about paralysis for this */
+                                        onSendToBox={sendCardToBox} 
+                                        onRecallFromBox={recallCardFromBox} 
+                                        boxCards={boxCards} 
+                                        pokemonDbCards={pokemonDbCards} 
+                                        trainersDbCards={trainersDbCards} 
+                                        palestreDbCards={palestreDbCards} 
+                                        isDbLoading={isDbLoading} 
+                                        dbError={dbError} 
+                                        onSelectTableAndFetchRandom={fetchRandomCardFromTable} 
+                                        onSelectPalestreCard={handlePalestreCardSelection} 
+                                        role="master" /* Pass role to CardSlot */
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Contenitore per le Medaglie in fondo alla pagina */}
+                            <div className="w-full flex justify-center mt-8">
+                                <MedalDisplay gymMedals={gymMedals} onToggleMedal={toggleGymMedal} />
+                            </div>
+
+                            {/* Contenitore per le Medaglie Superquattro */}
+                            <div className="w-full flex justify-center mt-8 pb-20"> 
+                                <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={toggleEliteFourMedal} />
+                            </div>
+                        </div>
+                    )}
+
+                    {currentView === 'box' && (
+                        <BoxView 
+                            boxCards={boxCards} 
+                            onBackToMain={() => setCurrentView('main')} 
+                            onDeleteCardFromBox={deleteCardFromBox} 
+                            role="master" /* Pass role to BoxView */
+                        />
+                    )}
+
+                    {currentView === 'negozio' && (
+                        <NegozioView
+                            negozioCards={negozioCards}
+                            onBackToMain={() => setCurrentView('main')}
+                            isDbLoading={isDbLoading}
+                            dbError={dbError}
+                            role="master" /* Pass role to NegozioView */
+                        />
+                    )}
+                </>
+            );
+        }
+        // --------------------------------------------------------------------------------------
+        // END - MASTER APP COMPONENT
+        // --------------------------------------------------------------------------------------
+
+
+        // --------------------------------------------------------------------------------------
+        // ROOT COMPONENT FOR SWITCHING BETWEEN PLAYER AND MASTER
+        // --------------------------------------------------------------------------------------
+        function MainAppContainer() {
+            // State to control which app is currently rendered
+            const [currentRole, setCurrentRole] = React.useState('player'); // Default role
+
+            // Function to switch roles
+            const switchRole = (newRole) => {
+                setCurrentRole(newRole);
+            };
+
+            return (
+                <div className="main-container min-h-screen flex flex-col items-center bg-gray-900">
+                    {currentRole === 'player' ? (
+                        <PlayerApp onSwitchRole={switchRole} />
+                    ) : (
+                        <MasterApp onSwitchRole={switchRole} />
+                    )}
+                </div>
+            );
+        }
+
+
+        // Renderizza il componente App di React nell'elemento 'root'
+        window.onload = function() {
+            ReactDOM.createRoot(document.getElementById('root')).render(<MainAppContainer />);
+        };
     </script>
 </body>
 </html>
