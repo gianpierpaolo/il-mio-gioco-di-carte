@@ -1520,8 +1520,6 @@
             const isStarButtonDisabled = !isMyTurn || (isMyTurn && activeCardParalyzed && !isActivePokemon) || (isMyTurn && isActivePokemon && cardData && cardData.statuses[3]);
 
             // Determine if the entire slot controls should be disabled for Player App
-            // THIS IS THE MODIFIED LINE: If role is 'player', isPlayerSlotDisabled is ALWAYS false.
-            // Otherwise, it's also false (for Master role).
             const isPlayerSlotDisabled = (role === 'player' ? false : false); 
 
             // Tailwind CSS classes for status marker colors
@@ -1556,13 +1554,7 @@
 
             return (
                 <div className={`relative p-6 rounded-xl shadow-2xl flex flex-col items-center border-4 ${isActivePokemon ? 'border-blue-400 bg-blue-900 bg-opacity-70' : 'border-yellow-400 bg-gray-800'} ${isPlayerSlotDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                    {/* Overlay to disable interaction for player-specific slots - REMOVED FOR PLAYER MODE */}
-                    {/* Only show "Solo per Master" overlay if the role is actually master, and not via isPlayerSlotDisabled */}
-                    {role === 'master' && (
-                        <div className="absolute inset-0 bg-gray-900 bg-opacity-50 z-20 rounded-xl flex items-center justify-center text-white text-center text-lg font-bold pointer-events-none">
-                            Solo per Master
-                        </div>
-                    )}
+                    {/* The 'Solo per Master' overlay has been removed from here */}
 
                     {/* Hidden file input for file upload */}
                     <input
@@ -2002,99 +1994,101 @@
         }
 
         // Component for rolling dice (now more generic)
-        function DiceRoller({ title, isAttackRoller, isDiceRollDisabled, onConfusedRollAttempt, isMyTurn, onDiceRollComplete, results, onSetResults, onDisplayResultsForBanner, isCaptureRoller, onCaptureCoinFlipNeeded }) { 
+        function DiceRoller({ title, isAttackRoller, isDiceRollDisabled, onConfusedRollAttempt, isMyTurn, onDiceRollComplete, onDisplayGlobalBanner, isCaptureRoller, onCaptureCoinFlipNeeded }) { // Removed results, onSetResults, onDisplayResultsForBanner
             const [numberOfDice, setNumberOfDice] = React.useState(1);
-            const [criticalHit, setCriticalHit] = React.useState(false); 
-            const [attackFailed, setAttackFailed] = React.useState(false); 
-            const [retreatFailed, setRetreatFailed] = React.useState(false); 
-            const [retreatSuccess, setRetreatSuccess] = React.useState(false); 
-            const [captureFailed, setCaptureFailed] = React.useState(false); 
-
-            // Mapping numbers to dice symbols (emoji)
-            // const diceFaces = { ... }; moved globally
-
+            const [diceResults, setDiceResults] = React.useState([]); // Internal state for displaying dice
+            
             const handleRoll = async () => {
-                // Reset banners for all roller types
-                setCriticalHit(false);
-                setAttackFailed(false);
-                setRetreatFailed(false);
-                setRetreatSuccess(false);
-                setCaptureFailed(false);
-
-                onSetResults([]); 
+                setDiceResults([]); // Clear previous results
 
                 // Logic specific to Attack Roller
                 if (isAttackRoller) {
                     // If paralyzed, prevent roll
                     if (isDiceRollDisabled === 'paralyzed') {
-                        console.log("Lancio dadi bloccato: Pokémon Paralizzato.");
+                        onDisplayGlobalBanner("Lancio bloccato: Pokémon Paralizzato!", 'info'); // Using global banner
                         return; 
                     }
 
                     // If confused, perform coin flip first
                     if (isDiceRollDisabled === 'confused') { 
-                        const shouldProceed = await onConfusedRollAttempt(); 
+                        const shouldProceed = await onConfusedRollAttempt(); // This now internally handles banner and turn end if hit self.
                         if (!shouldProceed) {
-                            onDiceRollComplete(); 
+                            // If shouldProceed is false, the confusion already handled the turn end.
+                            // So, we just return here, no further action for DiceRoller.
                             return;
                         }
                     }
                 }
 
                 const newResults = [];
-                let foursCount = 0;
-                let onesCount = 0;
+                let onesCountForCritical = 0; 
+                let onesCountForFail = 0;    
 
                 for (let i = 0; i < numberOfDice; i++) {
                     const roll = Math.floor(Math.random() * 6) + 1; // 6-sided die
                     newResults.push(roll);
-                    if (roll === 4) {
-                        foursCount++;
+                    if (roll === 1) { 
+                        onesCountForCritical++;
                     }
-                    if (roll === 1) {
-                        onesCount++;
+                    // For attack failure, a single '1' can cause it.
+                    // For retreat failure, any '1' causes it.
+                    if (roll === 1) { 
+                        onesCountForFail++;
                     }
                 }
-                onSetResults(newResults); 
-                onDisplayResultsForBanner(newResults); 
+                setDiceResults(newResults); // Update internal state for display
+
+                let isCriticalHit = false; 
+                let isAttackFailed = false; // Added flag for attack failure
 
                 // Determine banners and turn end based on roller type
                 if (isAttackRoller) {
-                    // New logic for Critical Hit based on number of dice
                     if (numberOfDice <= 3) {
-                        if (foursCount >= 2) {
-                            setCriticalHit(true);
+                        if (onesCountForCritical >= 2) { 
+                            onDisplayGlobalBanner("Attacco Critico!", 'attack_critical');
+                            isCriticalHit = true;
                         }
                     } else { // numberOfDice > 3
-                        if (foursCount >= 3) {
-                            setCriticalHit(true);
+                        if (onesCountForCritical >= 3) { 
+                            onDisplayGlobalBanner("Attacco Critico!", 'attack_critical');
+                            isCriticalHit = true;
                         }
                     }
                     
-                    if (onesCount >= 1) {
-                        setAttackFailed(true);
-                        setCriticalHit(false); 
-                    } else {
-                        setAttackFailed(false);
+                    // Attack fails if not critical and there's at least one '1'
+                    if (!isCriticalHit && onesCountForFail >= 1) { 
+                        onDisplayGlobalBanner("Attacco Fallito!", 'attack_failed');
+                        isAttackFailed = true; // Set failure flag
                     }
-                    onDiceRollComplete(); 
-                } else if (!isCaptureRoller) { 
-                    if (onesCount >= 1) {
-                        setRetreatFailed(true);
-                        setRetreatSuccess(false);
-                    } else {
-                        setRetreatSuccess(true);
-                        setRetreatFailed(false);
+
+                    // Only display "Attacco Riuscito!" if it's neither critical nor failed
+                    if (!isCriticalHit && !isAttackFailed) {
+                        onDisplayGlobalBanner("Attacco Riuscito!", 'attack_success');
                     }
-                    onDiceRollComplete(); 
-                } else { 
-                    if (onesCount >= 1) {
-                        setCaptureFailed(true);
-                        onDiceRollComplete(); 
+
+                    // Delay the turn end to allow the banner to be seen
+                    setTimeout(() => {
+                        onDiceRollComplete(); // This will toggle the turn AND clear the current banner
+                    }, 2000); // 2 second delay
+                } else if (!isCaptureRoller) { // This is the Retreat case
+                    if (onesCountForFail >= 1) { 
+                        onDisplayGlobalBanner("Ritirata Fallita!", 'retreat_failed');
                     } else {
-                        // If no 1s, trigger the coin flip in App.js
-                        onCaptureCoinFlipNeeded();
-                        // Do NOT call onDiceRollComplete here, App.js will handle turn end after coin flip
+                        onDisplayGlobalBanner("Ritirata Riuscita!", 'retreat_success');
+                    }
+                    // Delay the turn end for Retreat as well
+                    setTimeout(() => {
+                        onDiceRollComplete(); // This will toggle the turn AND clear the current banner
+                    }, 2000); // 2 second delay
+                } else { // This is the Capture case
+                    if (onesCountForFail >= 1) { 
+                        onDisplayGlobalBanner("Cattura Fallita!", 'capture_fail');
+                        // If capture fails on dice roll, end turn after a delay
+                        setTimeout(() => {
+                            onDiceRollComplete(); // This will toggle the turn AND clear the current banner
+                        }, 2000);
+                    } else {
+                        onCaptureCoinFlipNeeded(); // Proceed to coin flip for capture
                     }
                 }
             };
@@ -2133,9 +2127,9 @@
                         Lancia
                     </button>
 
-                    {results.length > 0 && ( 
+                    {diceResults.length > 0 && ( 
                         <div className="flex flex-wrap justify-center gap-2 text-3xl font-extrabold text-white mt-2"> 
-                            {results.map((result, index) => (
+                            {diceResults.map((result, index) => (
                                 <span key={index} className="bg-gray-900 p-2 rounded-md border-2 border-yellow-500 shadow-md flex-shrink-0">
                                     {diceFaces[result]} 
                                 </span>
@@ -2143,34 +2137,6 @@
                         </div>
                     )}
 
-                    {/* Banners only for Attack Roller */}
-                    {isAttackRoller && criticalHit && (
-                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse text-center w-full">
-                            ATTACCO CRITICO!
-                        </div>
-                    )}
-                    {isAttackRoller && attackFailed && (
-                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
-                            ATTACCO FALLITO!
-                        </div>
-                    )}
-                    {/* Banners only for Retreat Roller (not Capture Roller) */}
-                    {!isAttackRoller && !isCaptureRoller && retreatFailed && (
-                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
-                            FALLITA!
-                        </div>
-                    )}
-                    {!isAttackRoller && !isCaptureRoller && retreatSuccess && (
-                        <div className="mt-4 p-2 px-4 bg-green-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-green-400 animate-pulse text-center w-full">
-                            RIUSCITA!
-                        </div>
-                    )}
-                    {/* Banners only for Capture Roller */}
-                    {isCaptureRoller && captureFailed && (
-                        <div className="mt-4 p-2 px-4 bg-red-700 text-white font-bold text-xl rounded-lg shadow-xl border-2 border-red-400 animate-pulse text-center w-full">
-                            FALLITA!
-                        </div>
-                    )}
                 </div>
             );
         }
@@ -2308,7 +2274,7 @@
             );
         }
 
-        // NEW: NegozioView Component (replaces BackpackView)
+        // NEW: NegozioView Component (replaces backpackCards)
         function NegozioView({ negozioCards, onBackToMain, isDbLoading, dbError, role }) { 
             const [showZoomModal, setShowZoomModal] = React.useState(false);
             const [zoomImageUrl, setZoomImageUrl] = React.useState(null);
@@ -2466,36 +2432,15 @@
         function CoinFlipper() {
             const [numCoins, setNumCoins] = React.useState(1);
             const [results, setResults] = React.useState([]);
-            const [showResult, setShowResult] = React.useState(false);
-            const timeoutRef = React.useRef(null);
-
+            
             const handleFlip = () => {
-                if (timeoutRef.current) {
-                    clearTimeout(timeoutRef.current);
-                }
-
                 const newResults = [];
                 for (let i = 0; i < numCoins; i++) {
                     const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
                     newResults.push(result);
                 }
                 setResults(newResults);
-                setShowResult(true);
-
-                timeoutRef.current = setTimeout(() => {
-                    setShowResult(false);
-                    setResults([]);
-                }, 10000); // 10 seconds
             };
-
-            React.useEffect(() => {
-                // Cleanup timeout on unmount
-                return () => {
-                    if (timeoutRef.current) {
-                        clearTimeout(timeoutRef.current);
-                    }
-                };
-            }, []);
 
             return (
                 <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4 relative">
@@ -2522,15 +2467,58 @@
                         Lancia Monete
                     </button>
 
-                    {showResult && (
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 animate-fade-in-out-coin flex flex-wrap justify-center gap-2">
+                    {/* Display results directly within the component */}
+                    {results.length > 0 && (
+                        <div className="mt-4 flex flex-wrap justify-center gap-2 text-xl font-bold text-yellow-200">
                             {results.map((result, index) => (
-                                <span key={index} className="flex items-center">
-                                    🪙 ({result === 'Testa' ? 'T' : 'C'})
+                                <span 
+                                    key={index} 
+                                    className={`px-3 py-1 rounded-full ${result === 'Testa' ? 'bg-green-600' : 'bg-red-600'} text-white shadow-md`}
+                                >
+                                    {result === 'Testa' ? '🪙 T' : '🪙 C'}
                                 </span>
                             ))}
                         </div>
                     )}
+                </div>
+            );
+        }
+
+        // NEW: GlobalEventBanner Component
+        function GlobalEventBanner({ isVisible, message, type }) {
+            if (!isVisible) return null;
+
+            let bannerClasses = "fixed top-0 left-1/2 transform -translate-x-1/2 w-11/12 max-w-lg p-4 mt-4 rounded-xl shadow-2xl text-center text-white font-extrabold text-2xl z-50 transition-all duration-300 ease-in-out";
+            let specificTypeClasses = "";
+
+            switch (type) {
+                case 'status_woke_up':
+                case 'retreat_success':
+                case 'capture_success':
+                case 'attack_critical':
+                case 'confusion_miss': // New type for successful confusion roll
+                case 'attack_success': // NEW type for successful attack
+                    specificTypeClasses = "bg-green-700 border-4 border-green-400";
+                    break;
+                case 'status_cleared': 
+                case 'info':
+                    specificTypeClasses = "bg-blue-700 border-4 border-blue-400";
+                    break;
+                case 'damage_burn':
+                case 'damage_poison':
+                case 'attack_failed':
+                case 'retreat_failed':
+                case 'capture_fail':
+                case 'confusion_hit': // New type for failed confusion roll (hit self)
+                    specificTypeClasses = "bg-red-700 border-4 border-red-400";
+                    break;
+                default:
+                    specificTypeClasses = "bg-gray-700 border-4 border-gray-400";
+            }
+
+            return (
+                <div className={`${bannerClasses} ${specificTypeClasses}`}>
+                    {message}
                 </div>
             );
         }
@@ -2540,7 +2528,7 @@
         // This component contains all the game logic for the "Player" role.
         // It saves/loads its data using 'player_' prefixes in localStorage.
         // --------------------------------------------------------------------------------------
-        function PlayerApp({ onSwitchRole }) {
+        function PlayerApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner }) { // Added banner props
             const rolePrefix = 'player'; // Unique prefix for localStorage keys
 
             // Initialize card state from localStorage or an empty array of 6 slots
@@ -2734,21 +2722,19 @@
                 return savedTurnState ? JSON.parse(savedTurnState) : false; // Default: not your turn
             });
 
-            // State for coin flip banner (for both asleep and confused)
-            const [showCoinFlipBanner, setShowCoinFlipBanner] = React.useState(false);
+            // State for coin flip banner (for both asleep and confused) - NO LONGER USED FOR EXTERNAL BANNER
             const [coinFlipResult, setCoinFlipResult] = React.useState('');
             const [coinFlipType, setCoinFlipType] = React.useState(''); // 'turn' or 'confusion'
 
-            // New state for ATTACK dice roll results
+            // New state for ATTACK dice roll results - NO LONGER USED FOR EXTERNAL BANNER
             const [attackDiceResults, setAttackDiceResults] = React.useState([]);
-            // New state for RETREAT dice roll results
+            // New state for RETREAT dice roll results - NO LONGER USED FOR EXTERNAL BANNER
             const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
             // State for movement die (removed from UI, but state can remain if needed for other logic)
             const [movementDiceResult, setMovementDiceResult] = React.useState(null);
             const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
 
-            // State for the large dice banner (Attack/Retreat/Capture initial roll)
-            const [showGlobalDiceBanner, setShowGlobalDiceBanner] = React.useState(false);
+            // State for the large dice banner (Attack/Retreat/Capture initial roll) - NO LONGER USED FOR EXTERNAL BANNER
             const [globalDiceBannerResults, setGlobalDiceBannerResults] = React.useState([]);
 
             // New states for Capture Coin Flip Modal
@@ -2817,6 +2803,7 @@
                 // If there's an active card and it's Paralizzato and it's My Turn, prevent switching
                 if (isMyTurn && currentActiveCard && currentActiveCard.statuses[3]) { // statuses[3] is Paralizzato
                     console.log("Cannot change active Pokémon while current active is Paralizzato on your turn.");
+                    displayGlobalBanner("Pokémon Paralizzato non può ritirarsi o essere sostituito!", 'info');
                     return; // Block the action
                 }
 
@@ -2847,7 +2834,7 @@
                         };
                     });
                 });
-            }, [isMyTurn, cards]); // Added cards to dependencies for activeCard check
+            }, [isMyTurn, cards, displayGlobalBanner]); // Added cards and displayGlobalBanner to dependencies for activeCard check
 
 
             // Handles manual change of global currency input
@@ -2894,16 +2881,7 @@
             const handleConfusedRollAttempt = React.useCallback(async () => {
                 // Perform coin flip
                 const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
-                setCoinFlipResult(result);
-                setCoinFlipType('confusion'); // Indicate it's a confusion flip
-                setShowCoinFlipBanner(true);
-
-                // Hide banner after 3 seconds
-                setTimeout(() => {
-                    setShowCoinFlipBanner(false);
-                    setCoinFlipType('');
-                }, 3000);
-
+                
                 if (result === 'Croce') {
                     // Inflict 30 damage if Croce
                     setCards(prevCards => {
@@ -2915,14 +2893,26 @@
                             return card;
                         });
                     });
+                    displayGlobalBanner("Confusione: Pokémon Attivo si è colpito! (CROCE)", 'confusion_hit');
+                    
+                    // IF Pokémon hits itself due to confusion, the turn should end.
+                    // This call will also clear the global banner.
+                    // We need a slight delay here before ending the turn so the banner is visible.
+                    setTimeout(() => {
+                        toggleMyTurn(); // End the turn
+                    }, 2000); // Display banner for 2 seconds then end turn
+
                     return false; // Do not proceed with dice roll
+                } else {
+                    displayGlobalBanner("Confusione: Pokémon Attivo non si è colpito! (TESTA)", 'confusion_miss');
                 }
                 return true; // Proceed with dice roll
-            }, [activeCardForDice, cards]); // Dependencies: activeCardForDice, cards for setCards
+            }, [cards, displayGlobalBanner, toggleMyTurn]); // Add toggleMyTurn to dependencies
 
 
             // Toggles turn state AND handles status conditions
             const toggleMyTurn = React.useCallback(() => { // Made useCallback
+                clearGlobalBanner(); // Clear any previous banner at the start of a new turn
                 setIsMyTurn(prevIsMyTurn => {
                     const newTurnState = !prevIsMyTurn;
                     const currentActiveCardInTurn = cards.find(card => card && card.isActivePokemon); // Get active card at the moment of turn toggle
@@ -2939,22 +2929,14 @@
                                 return card;
                             });
                         });
+                        displayGlobalBanner("Pokémon Attivo non è più paralizzato!", 'status_cleared');
                     }
 
                     // Coin flip logic for "Asleep" status
                     // Coin is flipped only if there is an active Pokémon AND if it is Asleep
                     if (currentActiveCardInTurn && currentActiveCardInTurn.statuses[0]) { 
                         const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
-                        setCoinFlipResult(result);
-                        setCoinFlipType('turn'); // Indicate it's a turn flip
-                        setShowCoinFlipBanner(true);
-
-                        // Hide banner after 3 seconds
-                        setTimeout(() => {
-                            setShowCoinFlipBanner(false);
-                            setCoinFlipType('');
-                        }, 3000);
-
+                        
                         // Apply coin flip effect to active "Asleep" Pokémon
                         if (result === 'Testa') {
                             setCards(prevCards => {
@@ -2967,13 +2949,11 @@
                                     return card;
                                 });
                             });
+                            displayGlobalBanner("Pokémon Attivo si è svegliato! (TESTA)", 'status_woke_up');
+                        } else {
+                            displayGlobalBanner("Pokémon Attivo resta Addormentato! (CROCE)", 'info'); // Still asleep
                         }
-                        // If 'Croce' comes up, the Asleep Pokémon remains Asleep, so we do nothing here.
-                    } else {
-                        // If there is no active asleep Pokémon, ensure the coin banner is hidden
-                        setShowCoinFlipBanner(false);
-                        setCoinFlipType('');
-                    }
+                    } 
 
                     // Burn damage logic (only when it becomes your turn)
                     if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[1]) { // If it becomes your turn AND active Pokémon is Burned (index 1)
@@ -2986,6 +2966,7 @@
                                 return card;
                             });
                         });
+                        displayGlobalBanner("Pokémon Attivo subisce 20 danni da Bruciatura!", 'damage_burn');
                     }
 
                     // Poison damage logic (only when it becomes your turn)
@@ -2999,43 +2980,30 @@
                                 return card;
                             });
                         });
+                        displayGlobalBanner("Pokémon Attivo subisce 10 danni da Veleno!", 'damage_poison');
                     }
 
                     // Clear dice roll results when it becomes MY turn
                     if (newTurnState) { // If it's becoming MY turn
-                        setAttackDiceResults([]); // Clear results for Attack dice
-                        // Not clearing retreatDiceResults here, as per previous instruction to keep them visible during opponent's turn.
+                        // Note: Attack dice results are already cleared by DiceRoller on roll.
+                        // We are now relying on the global banner to show results.
                         setCaptureCoinFlipResult(null); // Clear capture coin result
                         setCaptureFinalOutcome(null); // Clear capture final outcome
                     } else { // If it's becoming OPPONENT's turn, clear retreat dice
-                        setRetreatDiceResults([]);
+                        // Not needed as DiceRoller clears its internal state
                     }
 
                     return newTurnState;
                 });
-            }, [cards, activeCardForDice, setAttackDiceResults, setRetreatDiceResults, setCaptureCoinFlipResult, setCaptureFinalOutcome]); // Added capture related states to dependencies
+            }, [cards, displayGlobalBanner, clearGlobalBanner]); // Added banner functions to dependencies
 
             // Function to handle movement die roll (kept for completeness, but not used in UI)
             const handleRollMovementDice = React.useCallback(() => {
+                // This is no longer used for the global banner, but if movement dice were re-added:
                 const roll = Math.floor(Math.random() * 6) + 1;
-                setMovementDiceResult(roll);
-                setShowMovementDiceBanner(true);
+                displayGlobalBanner(`Movimento: ${diceFaces[roll]}!`, 'info');
+            }, [displayGlobalBanner]);
 
-                setTimeout(() => {
-                    setShowMovementDiceBanner(false);
-                    setMovementDiceResult(null);
-                }, 5000); // 5 seconds
-            }, []);
-
-            // Function to handle displaying the large dice banner (Attack/Retreat initial roll)
-            const handleDisplayDiceBanner = React.useCallback((results) => {
-                setGlobalDiceBannerResults(results);
-                setShowGlobalDiceBanner(true);
-                setTimeout(() => {
-                    setShowGlobalDiceBanner(false);
-                    setGlobalDiceBannerResults([]);
-                }, 3000); // Banner visible for 3 seconds
-            }, []);
 
             // Function to handle when a capture dice roll indicates a coin flip is needed
             const handleCaptureCoinFlipNeeded = React.useCallback(() => {
@@ -3051,12 +3019,14 @@
                 const final = result === 'tails' ? 'PRESO' : 'FALLITA';
                 setCaptureFinalOutcome(final);
 
-                // Close modal and end turn after a short delay to show result
+                displayGlobalBanner(`Cattura: ${final === 'PRESO' ? 'Pokémon Catturato!' : 'Cattura Fallita!'}`, final === 'PRESO' ? 'capture_success' : 'capture_fail');
+
+                // Close modal after a short delay to show result
                 setTimeout(() => {
                     setShowCaptureCoinFlipModal(false);
                     toggleMyTurn(); // End the turn
-                }, 2000); // Show result for 2 seconds
-            }, [toggleMyTurn]);
+                }, 2000); 
+            }, [displayGlobalBanner, toggleMyTurn]);
 
             // Function to send a card from a slot to the box
             const sendCardToBox = React.useCallback((cardToBox, slotIndex) => {
@@ -3108,7 +3078,7 @@
                         // Card already exists, increment quantity
                         const newZainoCards = [...prevZainoCards];
                         newZainoCards[existingCardIndex] = {
-                            ...newZainoCards[existingCardIndex],
+                            ...newZainoCards[existingCardIndex], 
                             quantity: newZainoCards[existingCardIndex].quantity + 1
                         };
                         return newZainoCards;
@@ -3271,17 +3241,13 @@
                                         onConfusedRollAttempt={handleConfusedRollAttempt}
                                         isMyTurn={isMyTurn}
                                         onDiceRollComplete={toggleMyTurn}
-                                        results={attackDiceResults}
-                                        onSetResults={setAttackDiceResults}
-                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
                                     />
                                     {/* Roll RETREAT Dice */}
                                     <DiceRoller
                                         title="RITIRATA"
                                         isAttackRoller={false}
-                                        results={retreatDiceResults}
-                                        onSetResults={setRetreatDiceResults}
-                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
                                         onDiceRollComplete={toggleMyTurn} /* Added for Retreat to end turn */
                                         isMyTurn={isMyTurn} /* Pass isMyTurn to DiceRoller */
                                     />
@@ -3290,9 +3256,7 @@
                                         title="CATTURA"
                                         isAttackRoller={false}
                                         isCaptureRoller={true}
-                                        results={[]} // Capture dice only shows one result, handled by CaptureCoinFlipModal
-                                        onSetResults={() => {}} 
-                                        onDisplayResultsForBanner={() => {}}
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
                                         isMyTurn={isMyTurn}
                                         onDiceRollComplete={() => {}} // Turn end handled by coin flip result
                                         onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded}
@@ -3342,33 +3306,12 @@
                                     ZAINO ({playerZainoCards.length})
                                 </button>
                                 
-                                {/* Coin flip banner (for turn or confusion) */}
-                                {showCoinFlipBanner && (
-                                    <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
-                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipType === 'confusion' && coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
-                                    </div>
-                                )}
+                                {/* No longer using showCoinFlipBanner directly here */}
                             </div>
 
-                            {/* Large banner for Movement die (removed from UI, but banner state can remain) */}
-                            {showMovementDiceBanner && movementDiceResult && (
-                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
-                                        {diceFaces[movementDiceResult]}
-                                    </div>
-                                </div>
-                            )}
+                            {/* No longer using showMovementDiceBanner directly here */}
 
-                            {/* Large banner for ATTACK/RETREAT initial dice roll */}
-                            {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
-                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
-                                        {globalDiceBannerResults.map((result, index) => (
-                                            <span key={index}>{diceFaces[result]}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            {/* No longer using showGlobalDiceBanner directly here */}
 
                             {/* Capture Coin Flip Modal */}
                             <CaptureCoinFlipModal
@@ -3461,7 +3404,7 @@
         // This component contains all the game logic for the "Master" role.
         // It saves/loads its data using 'master_' prefixes in localStorage.
         // --------------------------------------------------------------------------------------
-        function MasterApp({ onSwitchRole }) {
+        function MasterApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner }) { // Added banner props
             const rolePrefix = 'master'; // Unique prefix for localStorage keys
 
             // Initialize card state from localStorage or an empty array of 6 slots
@@ -3649,21 +3592,19 @@
                 return savedTurnState ? JSON.parse(savedTurnState) : true; // Default: true for Master
             });
 
-            // State for coin flip banner (for both asleep and confused)
-            const [showCoinFlipBanner, setShowCoinFlipBanner] = React.useState(false);
+            // State for coin flip banner (for both asleep and confused) - NO LONGER USED FOR EXTERNAL BANNER
             const [coinFlipResult, setCoinFlipResult] = React.useState('');
             const [coinFlipType, setCoinFlipType] = React.useState(''); 
 
-            // New state for ATTACK dice roll results
+            // New state for ATTACK dice roll results - NO LONGER USED FOR EXTERNAL BANNER
             const [attackDiceResults, setAttackDiceResults] = React.useState([]);
-            // New state for RETREAT dice roll results
+            // New state for RETREAT dice roll results - NO LONGER USED FOR EXTERNAL BANNER
             const [retreatDiceResults, setRetreatDiceResults] = React.useState([]);
             // State for movement die (removed from UI, but state can remain if needed for other logic)
             const [movementDiceResult, setMovementDiceResult] = React.useState(null);
             const [showMovementDiceBanner, setShowMovementDiceBanner] = React.useState(false);
 
-            // State for the large dice banner (Attack/Retreat/Capture initial roll)
-            const [showGlobalDiceBanner, setShowGlobalDiceBanner] = React.useState(false);
+            // State for the large dice banner (Attack/Retreat/Capture initial roll) - NO LONGER USED FOR EXTERNAL BANNER
             const [globalDiceBannerResults, setGlobalDiceBannerResults] = React.useState([]);
 
             // New states for Capture Coin Flip Modal
@@ -3749,17 +3690,20 @@
                         if (!card) return null;
 
                         const isClickedCard = (idx === clickedSlotIndex);
-                        let newIsActive = card.isActivePokemon;
+                        let newIsActive = !card.isActivePokemon; // Toggle the clicked card
                         let newStatuses = [...card.statuses];
 
-                        if (isClickedCard) {
-                            newIsActive = !card.isActivePokemon;
-                            if (!newIsActive) {
-                                newStatuses = Array(5).fill(false);
-                            }
-                        } else if (card.isActivePokemon) {
-                            newIsActive = false;
+                        // If the clicked card is becoming INACTIVE, reset its statuses
+                        if (!newIsActive) {
                             newStatuses = Array(5).fill(false);
+                        } else { // If it's becoming active, deactivate others
+                            prevCards.forEach((otherCard, otherIdx) => {
+                                if (otherCard && otherIdx !== clickedSlotIndex && otherCard.isActivePokemon) {
+                                    // Deactivate other active cards and clear their statuses
+                                    // We're modifying the newCards array in place, so need to be careful or clone again.
+                                    // For simplicity, handle this in the outer map.
+                                }
+                            });
                         }
 
                         return {
@@ -3801,42 +3745,134 @@
                 });
             };
 
-            // Master app does not have dice roll restrictions
-            const diceRollDisableStatus = false; 
+            // Determines if dice roll should be disabled (if active Pokémon is asleep or paralyzed)
+            const activeCardForDice = cards.find(card => card && card.isActivePokemon); // Use a new const to avoid confusion with activeCard in toggleMyTurn
+            const getDiceRollDisableStatus = () => {
+                if (!activeCardForDice) return false;
+                if (activeCardForDice.statuses[0]) return 'asleep'; // Asleep
+                if (activeCardForDice.statuses[2]) return 'confused'; // Confused
+                if (activeCardForDice.statuses[3]) return 'paralyzed'; // Paralizzato - NEW
+                return false;
+            };
+            const diceRollDisableStatus = getDiceRollDisableStatus();
 
-            // Master app does not have confusion logic for dice rolls
+            // Function to handle coin flip for "Confused" status (Master)
             const handleConfusedRollAttempt = React.useCallback(async () => {
-                return true; // Always proceed for master
-            }, []);
+                // Perform coin flip
+                const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
+                
+                if (result === 'Croce') {
+                    // Inflict 30 damage if Croce
+                    setCards(prevCards => {
+                        return prevCards.map((card, idx) => {
+                            if (card && card.isActivePokemon) {
+                                const newDamageTaken = card.damageTaken + 30;
+                                return { ...card, damageTaken: newDamageTaken };
+                            }
+                            return card;
+                        });
+                    });
+                    displayGlobalBanner("Confusione: Pokémon Attivo si è colpito! (CROCE)", 'confusion_hit');
+                    
+                    setTimeout(() => {
+                        toggleMyTurn(); // End the turn
+                    }, 2000); 
 
-            // Master app can toggle turn freely
+                    return false; // Do not proceed with dice roll
+                } else {
+                    displayGlobalBanner("Confusione: Pokémon Attivo non si è colpito! (TESTA)", 'confusion_miss');
+                }
+                return true; // Proceed with dice roll
+            }, [cards, displayGlobalBanner, toggleMyTurn]); // Add toggleMyTurn to dependencies
+
+            // Master app can toggle turn freely AND apply status effects
             const toggleMyTurn = React.useCallback(() => {
-                setIsMyTurn(prevIsMyTurn => !prevIsMyTurn);
-                // Master app doesn't apply status effects on turn change
-                setAttackDiceResults([]); // Clear dice results
-                setRetreatDiceResults([]);
-                setCaptureCoinFlipResult(null); 
-                setCaptureFinalOutcome(null); 
-            }, []);
+                clearGlobalBanner(); // Clear any previous banner at the start of a new turn
+                setIsMyTurn(prevIsMyTurn => {
+                    const newTurnState = !prevIsMyTurn;
+                    const currentActiveCardInTurn = cards.find(card => card && card.isActivePokemon); // Get active card at the moment of turn toggle
+
+                    // Logic for "Paralyzed" status when turn passes to opponent
+                    if (!newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[3]) { 
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { 
+                                    const newStatuses = [...card.statuses];
+                                    newStatuses[3] = false; // Deselect Paralizzato
+                                    return { ...card, statuses: newStatuses };
+                                }
+                                return card;
+                            });
+                        });
+                        displayGlobalBanner("Pokémon Attivo non è più paralizzato!", 'status_cleared');
+                    }
+
+                    // Coin flip logic for "Asleep" status
+                    if (currentActiveCardInTurn && currentActiveCardInTurn.statuses[0]) { 
+                        const result = Math.random() < 0.5 ? 'Testa' : 'Croce';
+                        
+                        if (result === 'Testa') {
+                            setCards(prevCards => {
+                                return prevCards.map((card, idx) => {
+                                    if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) { 
+                                        const newStatuses = [...card.statuses];
+                                        newStatuses[0] = false; 
+                                        return { ...card, statuses: newStatuses };
+                                    }
+                                    return card;
+                                });
+                            });
+                            displayGlobalBanner("Pokémon Attivo si è svegliato! (TESTA)", 'status_woke_up');
+                        } else {
+                            displayGlobalBanner("Pokémon Attivo resta Addormentato! (CROCE)", 'info'); // Still asleep
+                        }
+                    } 
+
+                    // Burn damage logic 
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[1]) { 
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
+                                    const newDamageTaken = card.damageTaken + 20;
+                                    return { ...card, card, damageTaken: newDamageTaken };
+                                }
+                                return card;
+                            });
+                        });
+                        displayGlobalBanner("Pokémon Attivo subisce 20 danni da Bruciatura!", 'damage_burn');
+                    }
+
+                    // Poison damage logic 
+                    if (newTurnState && currentActiveCardInTurn && currentActiveCardInTurn.statuses[4]) { 
+                        setCards(prevCards => {
+                            return prevCards.map((card, idx) => {
+                                if (card && card.isActivePokemon && idx === cards.indexOf(currentActiveCardInTurn)) {
+                                    const newDamageTaken = card.damageTaken + 10; 
+                                    return { ...card, damageTaken: newDamageTaken };
+                                }
+                                return card;
+                            });
+                        });
+                        displayGlobalBanner("Pokémon Attivo subisce 10 danni da Veleno!", 'damage_poison');
+                    }
+
+                    // Clear dice roll results when it becomes MY turn
+                    if (newTurnState) { 
+                        setCaptureCoinFlipResult(null); 
+                        setCaptureFinalOutcome(null); 
+                    } else { 
+                        // Retreat dice results are not managed by MasterApp for player view
+                    }
+
+                    return newTurnState;
+                });
+            }, [cards, displayGlobalBanner, clearGlobalBanner]);
+
 
             const handleRollMovementDice = React.useCallback(() => {
                 const roll = Math.floor(Math.random() * 6) + 1;
-                setMovementDiceResult(roll);
-                setShowMovementDiceBanner(true);
-                setTimeout(() => {
-                    setShowMovementDiceBanner(false);
-                    setMovementDiceResult(null);
-                }, 5000);
-            }, []);
-
-            const handleDisplayDiceBanner = React.useCallback((results) => {
-                setGlobalDiceBannerResults(results);
-                setShowGlobalDiceBanner(true);
-                setTimeout(() => {
-                    setShowGlobalDiceBanner(false);
-                    setGlobalDiceBannerResults([]);
-                }, 3000);
-            }, []);
+                displayGlobalBanner(`Movimento: ${diceFaces[roll]}!`, 'info');
+            }, [displayGlobalBanner]);
 
             const handleCaptureCoinFlipNeeded = React.useCallback(() => {
                 setShowCaptureCoinFlipModal(true);
@@ -3850,11 +3886,13 @@
                 const final = result === 'tails' ? 'PRESO' : 'FALLITA';
                 setCaptureFinalOutcome(final);
 
+                displayGlobalBanner(`Cattura: ${final === 'PRESO' ? 'Pokémon Catturato!' : 'Cattura Fallita!'}`, final === 'PRESO' ? 'capture_success' : 'capture_fail');
+
                 setTimeout(() => {
                     setShowCaptureCoinFlipModal(false);
-                    // Master doesn't end turn after capture coin flip, it's just a display tool
+                    toggleMyTurn(); 
                 }, 2000); 
-            }, []);
+            }, [displayGlobalBanner, toggleMyTurn]);
 
 
             const sendCardToBox = React.useCallback((cardToBox, slotIndex) => {
@@ -4016,31 +4054,25 @@
                                         isAttackRoller={true}
                                         isDiceRollDisabled={diceRollDisableStatus}
                                         onConfusedRollAttempt={handleConfusedRollAttempt}
-                                        isMyTurn={true} /* Master can always roll dice */
-                                        onDiceRollComplete={() => {}} /* Master doesn't end turn with dice */
-                                        results={attackDiceResults}
-                                        onSetResults={setAttackDiceResults}
-                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
+                                        isMyTurn={isMyTurn} /* Master's turn state also affects dice now */
+                                        onDiceRollComplete={toggleMyTurn} /* Master's turn also ends with dice now */
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
                                     />
                                     {/* Roll RETREAT Dice */}
                                     <DiceRoller
                                         title="RITIRATA"
                                         isAttackRoller={false}
-                                        results={retreatDiceResults}
-                                        onSetResults={setRetreatDiceResults}
-                                        onDisplayResultsForBanner={handleDisplayDiceBanner}
-                                        onDiceRollComplete={() => {}} 
-                                        isMyTurn={true} 
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
+                                        onDiceRollComplete={toggleMyTurn} /* Master's turn also ends with dice now */
+                                        isMyTurn={isMyTurn} /* Master's turn state also affects dice now */
                                     />
                                     {/* Capture Dice Roller (Master can use it) */}
                                     <DiceRoller
                                         title="CATTURA"
                                         isAttackRoller={false}
                                         isCaptureRoller={true}
-                                        results={[]} 
-                                        onSetResults={() => {}} 
-                                        onDisplayResultsForBanner={() => {}}
-                                        isMyTurn={true}
+                                        onDisplayGlobalBanner={displayGlobalBanner} // Pass global banner function
+                                        isMyTurn={isMyTurn} /* Master's turn state also affects dice now */
                                         onDiceRollComplete={() => {}}
                                         onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded}
                                     />
@@ -4089,33 +4121,12 @@
                                     NEGOZIO
                                 </button>
 
-                                {/* Coin flip banner (for turn or confusion) */}
-                                {showCoinFlipBanner && (
-                                    <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg font-bold text-lg shadow-xl border-2 border-yellow-700 z-20 ${coinFlipType === 'confusion' ? 'animate-fade-in-out-confusion' : 'animate-fade-in-out-coin'}`}>
-                                        {coinFlipType === 'confusion' ? `Confusione: ${coinFlipResult}! ${coinFlipType === 'confusion' && coinFlipResult === 'Testa' ? '🪙' : '❌'}` : `${coinFlipResult}! 🪙`}
-                                    </div>
-                                )}
+                                {/* No longer using showCoinFlipBanner directly here */}
                             </div>
 
-                            {/* Large banner for Movement die (removed from UI, but banner state can remain) */}
-                            {showMovementDiceBanner && movementDiceResult && (
-                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-movement-dice">
-                                        {diceFaces[movementDiceResult]}
-                                    </div>
-                                </div>
-                            )}
+                            {/* No longer using showMovementDiceBanner directly here */}
 
-                            {/* Large banner for ATTACK/RETREAT initial dice roll */}
-                            {showGlobalDiceBanner && globalDiceBannerResults.length > 0 && (
-                                <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-90 z-40">
-                                    <div className="p-8 rounded-xl shadow-2xl bg-gray-700 border-4 border-yellow-400 text-white text-8xl font-extrabold animate-fade-in-out-dice-roll flex gap-4 justify-center flex-wrap">
-                                        {globalDiceBannerResults.map((result, index) => (
-                                            <span key={index}>{diceFaces[result]}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            {/* No longer using showGlobalDiceBanner directly here */}
 
                             {/* Capture Coin Flip Modal */}
                             <CaptureCoinFlipModal
@@ -4135,7 +4146,7 @@
                                         onUpdateCard={updateCardInSlot}
                                         onToggleActivePokemon={handleActivePokemonToggle} 
                                         isMyTurn={isMyTurn} 
-                                        activeCardParalyzed={false} /* Master doesn't care about paralysis for this */
+                                        activeCardParalyzed={diceRollDisableStatus === 'paralyzed'} /* Master's turn and paralysis are now linked */
                                         onSendToBox={sendCardToBox} 
                                         onRecallFromBox={recallCardFromBox} 
                                         boxCards={boxCards} 
@@ -4197,18 +4208,58 @@
         function MainAppContainer() {
             // State to control which app is currently rendered
             const [currentRole, setCurrentRole] = React.useState('player'); // Default role
+            const [globalBanner, setGlobalBanner] = React.useState({ isVisible: false, message: '', type: '' });
+            const bannerTimeoutRef = React.useRef(null); // Ref to store the timeout ID
+
+            // Function to display the global banner
+            const displayGlobalBanner = React.useCallback((message, type = 'info') => {
+                // Clear any existing timeout before setting a new banner
+                if (bannerTimeoutRef.current) {
+                    clearTimeout(bannerTimeoutRef.current);
+                }
+                setGlobalBanner({ isVisible: true, message, type });
+            }, []);
+
+            // Function to clear the global banner
+            const clearGlobalBanner = React.useCallback(() => {
+                setGlobalBanner({ isVisible: false, message: '', type: '' });
+                if (bannerTimeoutRef.current) {
+                    clearTimeout(bannerTimeoutRef.current);
+                    bannerTimeoutRef.current = null;
+                }
+            }, []);
+
+            // Effect to clear the banner when `isVisible` changes to true, and set a new timeout
+            // This ensures the banner stays visible until the turn changes OR until a new banner appears.
+            React.useEffect(() => {
+                if (globalBanner.isVisible) {
+                    // No automatic clearing after a fixed time here, as per user's request:
+                    // "resta fino al cambio di turno"
+                    // The clearGlobalBanner is called explicitly on toggleMyTurn.
+                }
+            }, [globalBanner.isVisible]);
 
             // Function to switch roles
             const switchRole = (newRole) => {
+                clearGlobalBanner(); // Clear banner on role switch
                 setCurrentRole(newRole);
             };
 
             return (
                 <div className="main-container min-h-screen flex flex-col items-center bg-gray-900">
+                    <GlobalEventBanner {...globalBanner} /> {/* Render the global banner */}
                     {currentRole === 'player' ? (
-                        <PlayerApp onSwitchRole={switchRole} />
+                        <PlayerApp 
+                            onSwitchRole={switchRole} 
+                            displayGlobalBanner={displayGlobalBanner} 
+                            clearGlobalBanner={clearGlobalBanner} 
+                        />
                     ) : (
-                        <MasterApp onSwitchRole={switchRole} />
+                        <MasterApp 
+                            onSwitchRole={switchRole} 
+                            displayGlobalBanner={displayGlobalBanner} 
+                            clearGlobalBanner={clearGlobalBanner} 
+                        />
                     )}
                 </div>
             );
