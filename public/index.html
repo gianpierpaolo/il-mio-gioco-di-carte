@@ -1465,7 +1465,7 @@
             const isSurfActive = gymMedals[4];
 
             return (
-                 <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full mt-4">
+                 <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
                     <h3 className="text-xl font-bold text-yellow-300 mb-4">MN</h3>
                     <div className="grid grid-cols-2 gap-4 w-full place-items-center">
                         <div className="flex flex-col items-center text-center">
@@ -1486,7 +1486,7 @@
             const eliteFourSymbols = ['❄️', '✊', '👻', '🐉']; 
             const eliteFourTitles = ['Lorelei', 'Bruno', 'Agatha', 'Lance'];
             return (
-                <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full mt-8"> 
+                <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full"> 
                     <h3 className="text-xl font-bold text-yellow-300 mb-4">SUPERQUATTRO</h3>
                     <div className="grid grid-cols-4 gap-4 w-full">
                         {eliteFourMedals.map((isActive, index) => (
@@ -1593,7 +1593,7 @@
 
 
             return (
-                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4"> 
+                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center justify-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full"> 
                     <h2 className="text-lg font-bold text-yellow-300">{title}</h2>
                     <div className="flex items-center space-x-2">
                         <label className="counter-label text-white text-sm">N°:</label>
@@ -1661,7 +1661,7 @@
 
 
         function TurnIndicator({ isMyTurn, onToggleTurn }) { 
-            return (<button onClick={onToggleTurn} className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 ${isMyTurn ? 'bg-green-500 border-green-700' : 'bg-red-500 border-red-700'} hover:scale-105 active:scale-95 mb-4`} title={isMyTurn ? 'Tuo turno' : 'Turno avversario'}>{isMyTurn ? '🏁' : '🚩'}</button>);
+            return (<button onClick={onToggleTurn} className={`flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 ${isMyTurn ? 'bg-green-500 border-green-700' : 'bg-red-500 border-red-700'} hover:scale-105 active:scale-95`} title={isMyTurn ? 'Tuo turno' : 'Turno avversario'}>{isMyTurn ? '🏁' : '🚩'}</button>);
         }
 
 
@@ -1905,7 +1905,7 @@
 
 
             return (
-                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full mb-4">
+                <div className="bg-gray-800 p-4 rounded-xl shadow-2xl flex flex-col items-center border-4 border-yellow-400 gap-4 flex-1 max-w-xs w-full">
                     <h2 className="text-lg font-bold text-yellow-300">LANCIO MONETE</h2>
                     <div className="flex items-center space-x-2">
                         <label className="counter-label text-white text-sm">N°:</label>
@@ -2069,7 +2069,7 @@
 
 
         // Componenti App (PlayerApp, MasterApp)
-        function PlayerApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner, showTemporaryCard, showPrizePreview, showDefeatPreview, showMovementResultPreview }) {
+        function PlayerApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner, showTemporaryCard, showPrizePreview, showDefeatPreview, showMovementResultPreview, layout, onLayoutChange }) {
             const rolePrefix = 'player';
             const useLocalStorageState = (key, defaultValue) => {
                 const [state, setState] = React.useState(() => {
@@ -2502,44 +2502,116 @@
                 return 'active-red-total';
             };
 
+            const isHorizontal = layout === 'horizontal';
+            
+            const playerControlElements = (
+                 <>
+                    <div className={`${isHorizontal ? 'flex flex-col items-center justify-center space-y-4' : 'w-full'}`}>
+                         <div className={`flex items-center justify-center space-x-4 ${!isHorizontal && 'mb-4'}`}>
+                            <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
+                            <button onClick={() => setShowMovementModal(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-cyan-500 border-cyan-700 hover:scale-105 active:scale-95" title="Movimento">🎲</button>
+                        </div>
+                        <CoinFlipper />
+                    </div>
+                    <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} onConfusedRollAttempt={handleConfusedRollAttempt} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                    <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                    <DiceRoller 
+                        title="CATTURA" 
+                        isCaptureRoller={true} 
+                        isMyTurn={isMyTurn} 
+                        onDiceRollComplete={toggleMyTurn} 
+                        onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded} 
+                        onDisplayGlobalBanner={displayGlobalBanner} 
+                        wildPokemonHpStatus={wildPokemonHpStatus}
+                        onWildPokemonHpChange={setWildPokemonHpStatus}
+                        role="player"
+                        onOpenSelectBallModal={() => setShowSelectBallModal(true)}
+                        selectedBall={selectedBall}
+                    />
+                    <div className={`${isHorizontal ? 'flex flex-col items-center justify-center space-y-2' : 'w-full'}`}>
+                         <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
+                            <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
+                            <button onClick={() => setGlobalCurrency(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-base">-</button>
+                            <input type="number" value={globalCurrency} onChange={(e) => setGlobalCurrency(parseInt(e.target.value) || 0)} className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1" min="0" />
+                            <button onClick={() => setGlobalCurrency(p => p+1)} className="btn-theme btn-green px-2 py-0.5 text-base">+</button>
+                        </div>
+                        <button onClick={() => setCurrentView('box')} className="btn-theme btn-purple px-6 py-3 text-lg mt-4 w-full max-w-xs">BOX ({boxCards.length})</button>
+                        <button onClick={() => setCurrentView('zaino')} className="btn-theme btn-orange px-6 py-3 text-lg mt-4 w-full max-w-xs">ZAINO ({playerZainoCards.length})</button>
+                        <button onClick={() => setShowVictoryDefeatModal(true)} className="btn-theme btn-yellow px-6 py-3 text-lg mt-4 w-full max-w-xs">Vittoria/Sconfitta</button>
+                    </div>
+                </>
+            );
 
             return (
                 <>
                     {currentView === 'main' ? (
                         <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-green-600 to-blue-700 p-4">
-                            <h1 className="text-5xl font-extrabold text-white mb-8 text-center drop-shadow-lg">POKÉMON DUEL (PLAYER)</h1>
-                            <button onClick={() => onSwitchRole('master')} className="btn-theme btn-gray px-6 py-3 text-lg mb-4">Passa a Master</button>
-                            <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
-                                <div className="flex items-center justify-center space-x-4 mb-4">
-                                    <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
-                                    <button onClick={() => setShowMovementModal(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-cyan-500 border-cyan-700 hover:scale-105 active:scale-95" title="Movimento">🎲</button>
-                                </div>
-                                <CoinFlipper />
-                                <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} onConfusedRollAttempt={handleConfusedRollAttempt} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
-                                <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
-                                <DiceRoller 
-                                    title="CATTURA" 
-                                    isCaptureRoller={true} 
-                                    isMyTurn={isMyTurn} 
-                                    onDiceRollComplete={toggleMyTurn} 
-                                    onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded} 
-                                    onDisplayGlobalBanner={displayGlobalBanner} 
-                                    wildPokemonHpStatus={wildPokemonHpStatus}
-                                    onWildPokemonHpChange={setWildPokemonHpStatus}
-                                    role="player"
-                                    onOpenSelectBallModal={() => setShowSelectBallModal(true)}
-                                    selectedBall={selectedBall}
-                                />
-                                <div className="bg-yellow-400 p-2 rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-700 w-full max-w-xs mt-4">
-                                    <span className="text-xl font-extrabold text-gray-800 mr-1">$</span>
-                                    <button onClick={() => setGlobalCurrency(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-base">-</button>
-                                    <input type="number" value={globalCurrency} onChange={(e) => setGlobalCurrency(parseInt(e.target.value) || 0)} className="w-16 px-1 py-0.5 bg-yellow-200 border-2 border-yellow-600 rounded-lg text-center text-gray-900 font-extrabold text-base mx-1" min="0" />
-                                    <button onClick={() => setGlobalCurrency(p => p+1)} className="btn-theme btn-green px-2 py-0.5 text-base">+</button>
-                                </div>
-                                <button onClick={() => setCurrentView('box')} className="btn-theme btn-purple px-6 py-3 text-lg mt-4">BOX ({boxCards.length})</button>
-                                <button onClick={() => setCurrentView('zaino')} className="btn-theme btn-orange px-6 py-3 text-lg mt-4">ZAINO ({playerZainoCards.length})</button>
-                                <button onClick={() => setShowVictoryDefeatModal(true)} className="btn-theme btn-yellow px-6 py-3 text-lg mt-4">Vittoria/Sconfitta</button>
+                            <h1 className="text-5xl font-extrabold text-white mb-4 text-center drop-shadow-lg">POKÉMON DUEL (PLAYER)</h1>
+                            <div className="flex mb-4">
+                                <button onClick={() => onSwitchRole('master')} className="btn-theme btn-gray px-6 py-3 text-lg">Passa a Master</button>
+                                <button onClick={() => onLayoutChange(p => p === 'vertical' ? 'horizontal' : 'vertical')} className="btn-theme btn-cyan px-4 py-2 text-lg ml-4" title="Cambia Layout">
+                                    {isHorizontal ? '↕️' : '↔️'}
+                                </button>
                             </div>
+
+                            { isHorizontal ? (
+                                <div className="w-full flex flex-col items-center px-4">
+                                    <div className="w-full flex flex-row flex-wrap items-stretch justify-center gap-4 p-4 mb-6 bg-gray-800/80 rounded-2xl shadow-xl border-4 border-yellow-400">
+                                        {playerControlElements}
+                                    </div>
+                                    
+                                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                        {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus === 'paralyzed'} onSendToBox={sendCardToBox} onRecallFromBox={recallCardFromBox} boxCards={boxCards} pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} role="player" showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} onOpenHealingModal={handleOpenHealingModal} isTonicEvolveActive={isTonicEvolveActive} onEvolutionComplete={() => setIsTonicEvolveActive(false)} />)}
+                                    </div>
+
+                                    <div className="w-full flex flex-row flex-wrap items-start justify-center gap-4 mt-8">
+                                        <MedalDisplay gymMedals={gymMedals} onToggleMedal={(i) => setGymMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
+                                        <HMDisplay gymMedals={gymMedals} />
+                                        <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
+                                        <div className="p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
+                                            <div className="flex flex-col items-center w-full">
+                                                <h3 className="text-xl font-bold text-yellow-300 mb-2">EXP Totali</h3>
+                                                <div className="flex items-center space-x-2 mb-2">
+                                                    <button onClick={() => setPlayerOverallExp(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-xl">-</button>
+                                                    <div className="flex flex-wrap justify-center gap-1 w-48">{[...Array(25)].map((_, i) => (<div key={i} className={`exp-dot ${getOverallExpDotColorClass(i)}`}></div>))}</div>
+                                                    <button onClick={() => setPlayerOverallExp(p => Math.min(25, p+1))} className="btn-theme btn-green px-2 py-0.5 text-xl">+</button>
+                                                </div>
+                                                <span className="text-xl font-bold text-white">{playerOverallExp}/25</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full flex justify-center mt-4 pb-8"><button onClick={() => setShowClearConfirm(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-red-600 border-red-800 hover:scale-105 active:scale-95" title="Resetta dati giocatore">🗑️</button></div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center">
+                                    <div className="w-full max-w-xs">
+                                        <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
+                                            {playerControlElements}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8">
+                                        {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus === 'paralyzed'} onSendToBox={sendCardToBox} onRecallFromBox={recallCardFromBox} boxCards={boxCards} pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} role="player" showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} onOpenHealingModal={handleOpenHealingModal} isTonicEvolveActive={isTonicEvolveActive} onEvolutionComplete={() => setIsTonicEvolveActive(false)} />)}
+                                    </div>
+                                    <div className="w-full flex flex-col items-center space-y-4">
+                                        <MedalDisplay gymMedals={gymMedals} onToggleMedal={(i) => setGymMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
+                                        <HMDisplay gymMedals={gymMedals} />
+                                        <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
+                                        <div className="p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
+                                            <div className="flex flex-col items-center w-full">
+                                                <h3 className="text-xl font-bold text-yellow-300 mb-2">EXP Totali</h3>
+                                                <div className="flex items-center space-x-2 mb-2">
+                                                    <button onClick={() => setPlayerOverallExp(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-xl">-</button>
+                                                    <div className="flex flex-wrap justify-center gap-1 w-48">{[...Array(25)].map((_, i) => (<div key={i} className={`exp-dot ${getOverallExpDotColorClass(i)}`}></div>))}</div>
+                                                    <button onClick={() => setPlayerOverallExp(p => Math.min(25, p+1))} className="btn-theme btn-green px-2 py-0.5 text-xl">+</button>
+                                                </div>
+                                                <span className="text-xl font-bold text-white">{playerOverallExp}/25</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full flex justify-center mt-8 pb-20"><button onClick={() => setShowClearConfirm(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-red-600 border-red-800 hover:scale-105 active:scale-95" title="Resetta dati giocatore">🗑️</button></div>
+                                    </div>
+                                </div>
+                            )}
+
                             <VictoryDefeatModal isOpen={showVictoryDefeatModal} onClose={() => setShowVictoryDefeatModal(false)} onVictoryClick={handleVictory} onDefeatClick={handleDefeat} />
                             <AssignExpModal isOpen={showAssignExpModal} onClose={() => setShowAssignExpModal(false)} onConfirm={handleConfirmExpAssignment} cards={cards} />
                             <MovementModal isOpen={showMovementModal} onClose={() => setShowMovementModal(false)} onRoll={handleMovementRoll} />
@@ -2557,26 +2629,6 @@
                                 onUseItem={handleUseHealingItem}
                                 targetSlot={healingTargetSlot}
                             />
-                            <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
-                                {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus === 'paralyzed'} onSendToBox={sendCardToBox} onRecallFromBox={recallCardFromBox} boxCards={boxCards} pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} role="player" showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} onOpenHealingModal={handleOpenHealingModal} isTonicEvolveActive={isTonicEvolveActive} onEvolutionComplete={() => setIsTonicEvolveActive(false)} />)}
-                            </div>
-                            <div className="w-full flex justify-center mt-8"><MedalDisplay gymMedals={gymMedals} onToggleMedal={(i) => setGymMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} /></div>
-                            <div className="w-full flex justify-center mt-4"><HMDisplay gymMedals={gymMedals} /></div>
-                            <div className="w-full flex justify-center mt-8"><EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} /></div>
-                            <div className="w-full flex justify-center mt-8">
-                                <div className="p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
-                                    <div className="flex flex-col items-center w-full">
-                                        <h3 className="text-xl font-bold text-yellow-300 mb-2">EXP Totali</h3>
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <button onClick={() => setPlayerOverallExp(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-xl">-</button>
-                                            <div className="flex flex-wrap justify-center gap-1 w-48">{[...Array(25)].map((_, i) => (<div key={i} className={`exp-dot ${getOverallExpDotColorClass(i)}`}></div>))}</div>
-                                            <button onClick={() => setPlayerOverallExp(p => Math.min(25, p+1))} className="btn-theme btn-green px-2 py-0.5 text-xl">+</button>
-                                        </div>
-                                        <span className="text-xl font-bold text-white">{playerOverallExp}/25</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="w-full flex justify-center mt-8 pb-20"><button onClick={() => setShowClearConfirm(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-red-600 border-red-800 hover:scale-105 active:scale-95" title="Resetta dati giocatore">🗑️</button></div>
                             {showClearConfirm && <div className="zoom-modal-overlay"><div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-red-500"><h3 className="text-2xl font-bold text-red-400 mb-6 text-center">Resettare tutti i dati del giocatore?</h3><div className="flex space-x-4"><button onClick={handleFullReset} className="btn-theme btn-red">Sì</button><button onClick={() => setShowClearConfirm(false)} className="btn-theme btn-gray">No</button></div></div></div>}
                         </div>
                     ) : currentView === 'box' ? <BoxView boxCards={boxCards} onBackToMain={() => setCurrentView('main')} onDeleteCardFromBox={deleteCardFromBox} role="player" onAddCardToBox={addCardToBox} pokemonDbCards={pokemonDbCards} isDbLoading={isDbLoading} dbError={dbError} />
@@ -2598,7 +2650,7 @@
             );
         }
         
-        function MasterApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner, showTemporaryCard }) {
+        function MasterApp({ onSwitchRole, displayGlobalBanner, clearGlobalBanner, showTemporaryCard, layout, onLayoutChange }) {
             const rolePrefix = 'master';
             const useLocalStorageState = (key, defaultValue) => { /* ... same as PlayerApp ... */
                 const [state, setState] = React.useState(() => JSON.parse(localStorage.getItem(key) ?? 'null') ?? defaultValue);
@@ -2685,31 +2737,62 @@
 
             const activeCardForDice = cards.find(c => c?.isActivePokemon);
             const diceRollDisableStatus = activeCardForDice ? (activeCardForDice.statuses[3] ? 'paralyzed' : false) : false;
+            const isHorizontal = layout === 'horizontal';
 
-
-            return (
-                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-red-600 to-purple-700 p-4">
-                    <h1 className="text-5xl font-extrabold text-white mb-8 text-center drop-shadow-lg">POKÉMON DUEL (MASTER)</h1>
-                    <button onClick={() => onSwitchRole('player')} className="btn-theme btn-gray px-6 py-3 text-lg mb-4">Passa a Player</button>
-                    <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
-                        <div className="flex items-center justify-center space-x-4 mb-4">
+            const masterControlElements = (
+                <>
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="flex items-center justify-center space-x-4">
                             <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
                             <button onClick={() => setShowClearConfirm(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-red-600 border-red-800 hover:scale-105 active:scale-95" title="Svuota slot">🗑️</button>
                         </div>
                         <CoinFlipper />
-                        <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
-                        <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
                     </div>
+                    <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                    <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                </>
+            );
+
+            return (
+                <div className="min-h-screen flex flex-col items-center bg-gradient-to-br from-red-600 to-purple-700 p-4">
+                    <h1 className="text-5xl font-extrabold text-white mb-4 text-center drop-shadow-lg">POKÉMON DUEL (MASTER)</h1>
+                    <div className="flex mb-4">
+                        <button onClick={() => onSwitchRole('player')} className="btn-theme btn-gray px-6 py-3 text-lg">Passa a Player</button>
+                         <button onClick={() => onLayoutChange(p => p === 'vertical' ? 'horizontal' : 'vertical')} className="btn-theme btn-cyan px-4 py-2 text-lg ml-4" title="Cambia Layout">
+                            {isHorizontal ? '↕️' : '↔️'}
+                        </button>
+                    </div>
+
+                    { isHorizontal ? (
+                        <div className="w-full flex flex-col items-center px-4">
+                            <div className="w-full flex flex-row flex-wrap items-stretch justify-center gap-4 p-4 mb-6 bg-gray-800/80 rounded-2xl shadow-xl border-4 border-yellow-400">
+                                {masterControlElements}
+                            </div>
+                            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus} role="master" pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} />)}
+                            </div>
+                        </div>
+                    ) : (
+                         <div className="flex flex-col items-center">
+                            <div className="w-full max-w-xs">
+                                <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
+                                     {masterControlElements}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8">
+                                {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus} role="master" pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} />)}
+                            </div>
+                        </div>
+                    )}
+                    
                     {showClearConfirm && <div className="zoom-modal-overlay"><div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-red-500"><h3 className="text-2xl font-bold text-red-400 mb-6 text-center">Svuotare tutti gli slot?</h3><div className="flex space-x-4"><button onClick={() => {setCards(Array(6).fill(null)); setShowClearConfirm(false);}} className="btn-theme btn-red">Sì</button><button onClick={() => setShowClearConfirm(false)} className="btn-theme btn-gray">No</button></div></div></div>}
-                    <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
-                        {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus} role="master" pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} />)}
-                    </div>
                 </div>
             );
         }
         
         function MainAppContainer() {
             const [currentRole, setCurrentRole] = React.useState('player');
+            const [layout, setLayout] = React.useState('vertical');
             const [globalBanner, setGlobalBanner] = React.useState({ isVisible: false, message: '', type: '' });
             const bannerTimeoutRef = React.useRef(null);
             const [temporaryCard, setTemporaryCard] = React.useState(null);
@@ -2755,9 +2838,9 @@
                     <DefeatPreviewDisplay defeatData={defeatPreview} />
                     <MovementResultDisplay result={movementResult} />
                     {currentRole === 'player' ? (
-                        <PlayerApp onSwitchRole={setCurrentRole} {...{displayGlobalBanner, clearGlobalBanner, showTemporaryCard, showPrizePreview, showDefeatPreview, showMovementResultPreview}} />
+                        <PlayerApp onSwitchRole={setCurrentRole} {...{displayGlobalBanner, clearGlobalBanner, showTemporaryCard, showPrizePreview, showDefeatPreview, showMovementResultPreview, layout}} onLayoutChange={setLayout} />
                     ) : (
-                        <MasterApp onSwitchRole={setCurrentRole} {...{displayGlobalBanner, clearGlobalBanner, showTemporaryCard}} />
+                        <MasterApp onSwitchRole={setCurrentRole} {...{displayGlobalBanner, clearGlobalBanner, showTemporaryCard, layout}} onLayoutChange={setLayout} />
                     )}
                 </div>
             );
@@ -2768,3 +2851,4 @@
     </script>
 </body>
 </html>
+
