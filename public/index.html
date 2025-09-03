@@ -384,7 +384,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: rgba(255, 255, 255, 0.3);
+            background-color: #EF4444; /* red-500 */
             color: white;
             border: none;
             border-radius: 50%;
@@ -398,7 +398,7 @@
             transition: background-color 0.2s ease-in-out;
         }
         .zoom-modal-close-btn:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: #DC2626; /* red-600 */
         }
     </style>
 </head>
@@ -1148,7 +1148,8 @@
                         exp: cardDetailsFromDb.exp !== undefined ? cardDetailsFromDb.exp : 0,
                         damageTaken: 0,
                         statuses: Array(5).fill(false),
-                        isActivePokemon: isBoardEmpty && isPokemon
+                        isActivePokemon: isBoardEmpty && isPokemon,
+                        evolutionStage: 0
                     };
                     onUpdateCard(slotIndex, newCardData);
                 }
@@ -1176,9 +1177,17 @@
                     if (shouldResetDataForImageReplace) {
                         const newBaseHp = cardDetailsFromDb.baseHp ?? 0;
                         const newExp = cardDetailsFromDb.exp ?? 0;
-                        updateParentCardData(newBaseHp, 0, Array(5).fill(false), imageUrl, newExp, false);
+                        onUpdateCard(slotIndex, {
+                            imageUrl: imageUrl,
+                            baseHp: newBaseHp,
+                            damageTaken: 0,
+                            statuses: Array(5).fill(false),
+                            exp: newExp,
+                            isActivePokemon: false,
+                            evolutionStage: 0
+                        });
                     } else {
-                        updateParentCardData(baseHp, damageTaken, statuses, imageUrl, currentExp, isActivePokemon);
+                        onUpdateCard(slotIndex, { ...cardData, imageUrl: imageUrl });
                     }
                 } else if (actionType === 'reset_full_slot' && confirmAction?.type === 'reset_full_slot') {
                     onUpdateCard(slotIndex, null);
@@ -1199,13 +1208,13 @@
 
             const handleBaseHpChange = (event) => {
                 const value = parseInt(event.target.value) || 0;
-                updateParentCardData(value, damageTaken, statuses, cardImage, currentExp, isActivePokemon);
+                onUpdateCard(slotIndex, { ...cardData, baseHp: value });
             };
 
 
             const handleDamageChange = (amount) => {
                 const newDamage = Math.max(0, damageTaken + amount);
-                updateParentCardData(baseHp, newDamage, statuses, cardImage, currentExp, isActivePokemon); 
+                onUpdateCard(slotIndex, { ...cardData, damageTaken: newDamage });
             };
 
 
@@ -1215,7 +1224,7 @@
                 if (!statuses[index]) {
                     newStatuses[index] = true;
                 }
-                updateParentCardData(baseHp, damageTaken, newStatuses, cardImage, currentExp, isActivePokemon);
+                onUpdateCard(slotIndex, { ...cardData, statuses: newStatuses });
             };
 
 
@@ -1290,6 +1299,7 @@
                     statuses: Array(5).fill(false),
                     exp: currentExp, // Inherit EXP
                     isActivePokemon: isActivePokemon, // Inherit active status
+                    evolutionStage: (cardData.evolutionStage || 0) + 1
                 });
                 setShowEvolveModal(false);
                 if (isTonicEvolveActive) {
@@ -1361,7 +1371,7 @@
                                 <div className="flex items-center space-x-4 mb-4 text-xl w-full justify-center">
                                     <span className="counter-label text-blue-300">EXP:</span>
                                     <div className="flex space-x-1">
-                                        {[...Array(6)].map((_, i) => (<div key={i} className={`exp-dot ${i < currentExp ? (isActivePokemon ? 'active-blue' : 'active-yellow') : ''}`}></div>))}
+                                        {[...Array(10)].map((_, i) => (<div key={i} className={`exp-dot ${i < currentExp ? (isActivePokemon ? 'active-blue' : 'active-yellow') : ''}`}></div>))}
                                     </div>
                                 </div>
                             )}
@@ -1378,9 +1388,9 @@
                                         <button onClick={handleSendToBox} className={`btn-theme btn-purple text-xs w-full py-2 px-1 ${!cardData ? 'opacity-50 cursor-not-allowed' : ''}`} title="Invia al Box" disabled={!cardData}>INVIA AL BOX</button>
                                         <button 
                                             onClick={handleEvolve}
-                                            className={`btn-theme btn-cyan text-xs w-full py-2 px-1 ${!cardData || !(isTonicEvolveActive || (currentExp >= 3 && currentExp % 3 === 0)) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`btn-theme btn-cyan text-xs w-full py-2 px-1 ${!cardData || !(isTonicEvolveActive || (currentExp >= 5 && (cardData.evolutionStage || 0) === 0) || (currentExp >= 10 && cardData.evolutionStage === 1)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title="Evolvi Pokémon"
-                                            disabled={!cardData || !(isTonicEvolveActive || (currentExp >= 3 && currentExp % 3 === 0))}
+                                            disabled={!cardData || !(isTonicEvolveActive || (currentExp >= 5 && (cardData.evolutionStage || 0) === 0) || (currentExp >= 10 && cardData.evolutionStage === 1))}
                                         >
                                             EVOLVI
                                         </button>
@@ -1434,13 +1444,16 @@
         // Altri componenti (MedalDisplay, DiceRoller, etc.)
         function MedalDisplay({ gymMedals, onToggleMedal }) { 
             const medalSymbols = ['⚫', '💧', '⚡', '🌈', '❤️', '🟠', '🌋', '🌿']; 
-            const medalTitles = ['Roccia', 'Cascata', 'Saetta', 'Arcobaleno', 'Anima', 'Terra', 'Vulcano', 'Foglia'];
+            const medalTrainers = ['Brock', 'Misty', 'Lt. Surge', 'Erika', 'Koga', 'Sabrina', 'Blaine', 'Giovanni'];
             return (
-                <div className="flex flex-col items-center p-3 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-sm w-full">
+                <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
                     <h3 className="text-xl font-bold text-yellow-300 mb-4">PALESTRE</h3>
-                    <div className="flex flex-wrap justify-center gap-2">
+                    <div className="grid grid-cols-4 gap-4 w-full">
                         {gymMedals.map((isActive, index) => (
-                            <div key={index} className={`medal-icon ${isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500 active" : "bg-gray-600 text-gray-300 hover:bg-gray-500"}`} onClick={() => onToggleMedal(index)} title={medalTitles[index]}>{medalSymbols[index]}</div>
+                            <div key={index} className="flex flex-col items-center text-center cursor-pointer" onClick={() => onToggleMedal(index)} title={medalTrainers[index]}>
+                                <div className={`medal-icon !w-16 !h-16 !text-4xl ${isActive ? "bg-yellow-300 text-gray-800 ring-yellow-500 active" : "bg-gray-600 text-gray-300 hover:bg-gray-500"}`}>{medalSymbols[index]}</div>
+                                <p className="mt-2 text-xs font-semibold text-white">{medalTrainers[index]}</p>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -1452,11 +1465,17 @@
             const isSurfActive = gymMedals[4];
 
             return (
-                 <div className="flex flex-col items-center p-3 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-sm w-full mt-4">
+                 <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full mt-4">
                     <h3 className="text-xl font-bold text-yellow-300 mb-4">MN</h3>
-                    <div className="flex justify-center gap-4">
-                        <div className={`hm-icon ${isFlyActive ? 'fly-active active' : ''}`} title="Volo">🕊️</div>
-                        <div className={`hm-icon ${isSurfActive ? 'surf-active active' : ''}`} title="Surf">🌊</div>
+                    <div className="grid grid-cols-2 gap-4 w-full place-items-center">
+                        <div className="flex flex-col items-center text-center">
+                            <div className={`hm-icon !w-24 !h-24 !text-6xl ${isFlyActive ? 'fly-active active' : ''}`} title="Volo">🕊️</div>
+                            <p className="mt-2 text-sm font-semibold text-white">Volo</p>
+                        </div>
+                        <div className="flex flex-col items-center text-center">
+                            <div className={`hm-icon !w-24 !h-24 !text-6xl ${isSurfActive ? 'surf-active active' : ''}`} title="Surf">🌊</div>
+                            <p className="mt-2 text-sm font-semibold text-white">Surf</p>
+                        </div>
                     </div>
                 </div>
             );
@@ -1467,11 +1486,14 @@
             const eliteFourSymbols = ['❄️', '✊', '👻', '🐉']; 
             const eliteFourTitles = ['Lorelei', 'Bruno', 'Agatha', 'Lance'];
             return (
-                <div className="flex flex-col items-center p-3 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-sm w-full mt-8"> 
+                <div className="flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full mt-8"> 
                     <h3 className="text-xl font-bold text-yellow-300 mb-4">SUPERQUATTRO</h3>
-                    <div className="flex flex-wrap justify-center gap-2">
+                    <div className="grid grid-cols-4 gap-4 w-full">
                         {eliteFourMedals.map((isActive, index) => (
-                            <div key={index} className={`elite-four-icon ${isActive ? "active" : ""}`} onClick={() => onToggleMedal(index)} title={eliteFourTitles[index]}>{eliteFourSymbols[index]}</div>
+                             <div key={index} className="flex flex-col items-center text-center cursor-pointer" onClick={() => onToggleMedal(index)} title={eliteFourTitles[index]}>
+                                <div className={`elite-four-icon !w-16 !h-16 !text-4xl ${isActive ? "active" : ""}`}>{eliteFourSymbols[index]}</div>
+                                <p className="mt-2 text-xs font-semibold text-white">{eliteFourTitles[index]}</p>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -1488,13 +1510,13 @@
                 if (isCaptureRoller && selectedBall) {
                     let diceCount = 1;
                     if (selectedBall.includes('poké ball')) {
-                        if (wildPokemonHpStatus === 'green') diceCount = 4;
-                        else if (wildPokemonHpStatus === 'yellow') diceCount = 3;
-                        else if (wildPokemonHpStatus === 'red') diceCount = 1;
-                    } else if (selectedBall.includes('mega ball')) {
                         if (wildPokemonHpStatus === 'green') diceCount = 3;
                         else if (wildPokemonHpStatus === 'yellow') diceCount = 2;
                         else if (wildPokemonHpStatus === 'red') diceCount = 1;
+                    } else if (selectedBall.includes('mega ball')) {
+                        if (wildPokemonHpStatus === 'green') diceCount = 2;
+                        else if (wildPokemonHpStatus === 'yellow') diceCount = 1;
+                        else if (wildPokemonHpStatus === 'red') diceCount = 0;
                     } else if (selectedBall.includes('ultra ball')) {
                         if (wildPokemonHpStatus === 'green') diceCount = 2;
                         else if (wildPokemonHpStatus === 'yellow') diceCount = 1;
@@ -1549,16 +1571,17 @@
                 } else if (isCaptureRoller) {
                     if (onesCount >= 1) {
                         onDisplayGlobalBanner("Cattura Fallita!", 'capture_fail', 3000);
+                        setRollOutcome("Cattura Fallita!");
                         onDiceRollComplete(); 
                     } else {
                         onCaptureCoinFlipNeeded();
                     }
                 } else { // Retreat
                     if (onesCount >= 1) {
-                        onDisplayGlobalBanner("Ritirata Fallita!", 'retreat_failed', 3000);
+                        onDisplayGlobalBanner("SCAMBIA/FUGA FALLITA!", 'retreat_failed', 3000);
                         setRollOutcome("Fallita!");
                     } else {
-                        onDisplayGlobalBanner("Ritirata Riuscita!", 'retreat_success', 3000);
+                        onDisplayGlobalBanner("SCAMBIA/FUGA RIUSCITA!", 'retreat_success', 3000);
                         setRollOutcome("Riuscita!");
                     }
                     onDiceRollComplete(); 
@@ -1846,7 +1869,7 @@
                                     <img src={card.imageUrl} alt={card.name} className="w-32 h-44 object-cover rounded-lg border border-gray-700 mb-2 cursor-pointer" onClick={() => handleCardClick(card.imageUrl)} onError={(e) => { e.target.src = "https://placehold.co/128x176/444/bbb?text=Errore"; }} />
                                     <p className="text-gray-300 text-sm font-semibold text-center">{card.name}</p>
                                     <div className="flex items-center mt-2 space-x-2">
-                                        <button onClick={() => onUpdateZainoCardQuantity(card.id, -1)} className="btn-theme btn-red px-2 py-0.5 text-base" disabled={card.quantity <= 1}>-</button>
+                                        <button onClick={() => onUpdateZainoCardQuantity(card.id, -1)} className="btn-theme btn-red px-2 py-0.5 text-base">-</button>
                                         <span className="text-white text-lg font-bold">Qtà: {card.quantity}</span>
                                         <button onClick={() => onUpdateZainoCardQuantity(card.id, 1)} className="btn-theme btn-green px-2 py-0.5 text-base">+</button>
                                     </div>
@@ -1979,7 +2002,7 @@
                                 <button onClick={() => onDefeatClick({ currency: 2, type: 'sconfitta' })} className="btn-theme btn-purple w-full">Sconfitta vs Allenatore</button>
                                 <button onClick={() => onDefeatClick({ currency: 3, type: 'sconfitta' })} className="btn-theme btn-purple w-full">Sconfitta vs Palestra/Superquattro</button>
                                 <button onClick={() => onDefeatClick({ currency: 6, type: 'sconfitta' })} className="btn-theme btn-purple w-full">Sconfitta vs Altro Giocatore</button>
-                                <button onClick={() => onDefeatClick({ currency: 1, type: 'fuga' })} className="btn-theme btn-gray w-full">Fuga</button>
+                                <button onClick={() => onDefeatClick({ currency: 1, type: 'fuga' })} className="btn-theme btn-gray w-full text-sm">Fuga/Sconfitto da Pokemon selvatico</button>
                             </div>
                         )}
                         <button onClick={() => outcome ? setOutcome(null) : onClose()} className="btn-theme btn-gray mt-8 px-6 py-2 text-lg">{outcome ? 'Indietro' : 'Annulla'}</button>
@@ -2184,7 +2207,16 @@
                 return result;
             }, [cards, displayGlobalBanner, setCards, toggleMyTurn]);
             
-            const handleCaptureCoinFlipNeeded = () => { setShowCaptureCoinFlipModal(true); setCaptureCoinFlipResult(null); setCaptureFinalOutcome(null); };
+            const handleCaptureCoinFlipNeeded = () => {
+                if (selectedBall && selectedBall.includes('ultra ball')) {
+                    displayGlobalBanner('Pokémon Catturato!', 'capture_success');
+                    setTimeout(toggleMyTurn, 2000);
+                } else {
+                    setShowCaptureCoinFlipModal(true);
+                    setCaptureCoinFlipResult(null);
+                    setCaptureFinalOutcome(null);
+                }
+            };
             const performCaptureCoinFlip = () => {
                 const result = Math.random() < 0.5 ? 'testa' : 'croce';
                 setCaptureCoinFlipResult(result);
@@ -2197,13 +2229,13 @@
 
             const sendCardToBox = (card, slot) => { setBoxCards(p => [...p, card]); updateCardInSlot(slot, null); };
             const recallCardFromBox = (card, slot, boxIndex, delOnly) => {
-                if (!delOnly) updateCardInSlot(slot, {...card, damageTaken: 0, statuses: Array(5).fill(false), isActivePokemon: false});
+                if (!delOnly) updateCardInSlot(slot, {...card, damageTaken: 0, statuses: Array(5).fill(false), isActivePokemon: false, evolutionStage: 0});
                 setBoxCards(p => p.filter((_, i) => i !== boxIndex));
             };
             const deleteCardFromBox = (index) => setBoxCards(p => p.filter((_, i) => i !== index));
             
             const addCardToBox = (card) => {
-                setBoxCards(prev => [...prev, {...card, damageTaken: 0, statuses: Array(5).fill(false), isActivePokemon: false, exp: 0}]);
+                setBoxCards(prev => [...prev, {...card, damageTaken: 0, statuses: Array(5).fill(false), isActivePokemon: false, exp: 0, evolutionStage: 0}]);
             };
 
             const addCardToZaino = (card, isPrize = false) => {
@@ -2216,16 +2248,30 @@
                 if (!isPrize) displayGlobalBanner(`Hai acquistato ${card.name}!`, 'purchase_success');
             };
             const updateZainoCardQuantity = (id, amount) => {
-                setPlayerZainoCards(p => {
-                    const card = p.find(c => c.id === id);
-                    if (amount > 0) {
-                        const cardCost = trainersCardDbCards.find(db => db.id === id)?.cost || 0;
-                        if (globalCurrency < cardCost) { displayGlobalBanner(`Non hai abbastanza soldi!`, 'purchase_fail'); return p; }
-                        setGlobalCurrency(curr => curr - cardCost);
-                        displayGlobalBanner(`Acquistata un'altra copia!`, 'purchase_success');
+                const cardInDb = trainersCardDbCards.find(db => db.id === id);
+                const cardCost = cardInDb?.cost || 0;
+
+                if (amount > 0) { // Compra
+                    if (globalCurrency < cardCost) {
+                        displayGlobalBanner(`Non hai abbastanza soldi!`, 'purchase_fail');
+                        return;
                     }
-                    return p.map(c => c.id === id ? {...c, quantity: c.quantity + amount} : c).filter(c => c.quantity > 0);
-                });
+                    setGlobalCurrency(curr => curr - cardCost);
+                    displayGlobalBanner(`Acquistata un'altra copia!`, 'purchase_success');
+                } else if (amount < 0) { // Vendi
+                    const cardInZaino = playerZainoCards.find(c => c.id === id);
+                    if(cardInZaino && cardInZaino.quantity > 0) {
+                      setGlobalCurrency(curr => curr + cardCost);
+                      displayGlobalBanner(`Venduto per ${cardCost}$!`, 'purchase_success');
+                    } else {
+                       return;
+                    }
+                }
+
+                setPlayerZainoCards(p => 
+                    p.map(c => c.id === id ? {...c, quantity: c.quantity + amount} : c)
+                     .filter(c => c.quantity > 0)
+                );
             };
             const onDeleteZainoCard = (id) => setPlayerZainoCards(p => p.filter(c => c.id !== id));
             
@@ -2320,7 +2366,7 @@
                      setCards(prev => {
                         const newCards = [...prev];
                         if (newCards[targetSlot]) {
-                            newCards[targetSlot] = { ...newCards[targetSlot], exp: Math.min(6, newCards[targetSlot].exp + 1) };
+                            newCards[targetSlot] = { ...newCards[targetSlot], exp: Math.min(10, newCards[targetSlot].exp + 1) };
                         }
                         return newCards;
                     });
@@ -2360,11 +2406,14 @@
 
             const handleVictory = ({ currency, prizes, exp }) => {
                 setShowVictoryDefeatModal(false);
-                setPlayerOverallExp(p => Math.min(15, p + 1));
+                setPlayerOverallExp(p => Math.min(25, p + 1));
                 setGlobalCurrency(p => p + currency);
                 setPendingExpAmount(exp);
-                if (prizes > 0 && trainersCardDbCards.length > 0) {
-                    const prizeCards = Array.from({ length: prizes }, () => trainersCardDbCards[Math.floor(Math.random() * trainersCardDbCards.length)]);
+
+                const availablePrizes = trainersCardDbCards.filter(card => !card.name.toLowerCase().includes('bicicletta'));
+
+                if (prizes > 0 && availablePrizes.length > 0) {
+                    const prizeCards = Array.from({ length: prizes }, () => availablePrizes[Math.floor(Math.random() * availablePrizes.length)]);
                     setPendingPrize(prizeCards);
                     showPrizePreview(prizeCards, currency, () => setShowAssignExpModal(true));
                 } else {
@@ -2372,7 +2421,7 @@
                 }
             };
             const handleConfirmExpAssignment = (selectedIndices) => {
-                setCards(p => p.map((c, i) => (selectedIndices.includes(i) && c) ? { ...c, exp: Math.min(6, c.exp + pendingExpAmount) } : c));
+                setCards(p => p.map((c, i) => (selectedIndices.includes(i) && c) ? { ...c, exp: Math.min(10, c.exp + pendingExpAmount) } : c));
                 if (pendingPrize) {
                     pendingPrize.forEach(card => addCardToZaino(card, true));
                     setPendingPrize(null);
@@ -2392,8 +2441,8 @@
             const handlePalestreCardSelection = (palestreCard, wasBoardEmpty) => {
                 const trainer1 = trainersDbCards.find(c => c.name === `${palestreCard.name}-1`);
                 const trainer2 = trainersDbCards.find(c => c.name === `${palestreCard.name}-2`);
-                updateCardInSlot(0, trainer1 ? {...trainer1, baseHp: trainer1.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty } : null);
-                updateCardInSlot(1, trainer2 ? {...trainer2, baseHp: trainer2.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: false } : null);
+                updateCardInSlot(0, trainer1 ? {...trainer1, baseHp: trainer1.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty, evolutionStage: 0 } : null);
+                updateCardInSlot(1, trainer2 ? {...trainer2, baseHp: trainer2.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: false, evolutionStage: 0 } : null);
             };
 
 
@@ -2411,7 +2460,7 @@
                         if (randomCard.tipo === 'a') {
                             handlePalestreCardSelection(randomCard, wasBoardEmpty);
                         } else {
-                            updateCardInSlot(0, { imageUrl: randomCard.image_url, baseHp: randomCard.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: randomCard.exp || 0, isActivePokemon: wasBoardEmpty });
+                            updateCardInSlot(0, { imageUrl: randomCard.image_url, baseHp: randomCard.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty, evolutionStage: 0 });
                         }
                     });
                 } catch (error) {
@@ -2423,11 +2472,21 @@
             const handleFullReset = () => {
                 setCards(Array(6).fill(null));
                 setBoxCards([]);
-                setPlayerZainoCards([]);
-                setGlobalCurrency(0);
                 setGymMedals(Array(8).fill(false));
                 setEliteFourMedals(Array(4).fill(false));
                 setPlayerOverallExp(0);
+                setGlobalCurrency(5);
+
+                const starterPack = [];
+                const pokeball = trainersCardDbCards.find(c => c.name.toLowerCase() === 'poké ball');
+                const pozione = trainersCardDbCards.find(c => c.name.toLowerCase() === 'pozione');
+                const revitalizzante = trainersCardDbCards.find(c => c.name.toLowerCase() === 'revitalizzante');
+
+                if (pokeball) starterPack.push({ ...pokeball, quantity: 5 });
+                if (pozione) starterPack.push({ ...pozione, quantity: 2 });
+                if (revitalizzante) starterPack.push({ ...revitalizzante, quantity: 1 });
+                
+                setPlayerZainoCards(starterPack);
                 setShowClearConfirm(false);
             };
 
@@ -2436,7 +2495,11 @@
             const diceRollDisableStatus = activeCardForDice ? (activeCardForDice.statuses[0] ? 'asleep' : (activeCardForDice.statuses[2] ? 'confused' : (activeCardForDice.statuses[3] ? 'paralyzed' : false))) : false;
             const getOverallExpDotColorClass = (i) => {
                 if (i >= playerOverallExp) return '';
-                if (i <= 2) return 'active-pink'; if (i <= 5) return 'active-green-total'; if (i <= 8) return 'active-blue-total'; if (i <= 11) return 'active-yellow-total'; return 'active-red-total';
+                if (i <= 4) return 'active-pink';
+                if (i <= 9) return 'active-green-total';
+                if (i <= 14) return 'active-blue-total';
+                if (i <= 19) return 'active-yellow-total';
+                return 'active-red-total';
             };
 
 
@@ -2447,27 +2510,18 @@
                             <h1 className="text-5xl font-extrabold text-white mb-8 text-center drop-shadow-lg">POKÉMON DUEL (PLAYER)</h1>
                             <button onClick={() => onSwitchRole('master')} className="btn-theme btn-gray px-6 py-3 text-lg mb-4">Passa a Master</button>
                             <div className="w-full max-w-xs flex flex-col items-center p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 z-10 mb-4">
-                                <div className="flex flex-col items-center mb-4 w-full">
-                                    <h3 className="text-xl font-bold text-yellow-300 mb-2">EXP Totali</h3>
-                                    <div className="flex items-center space-x-2 mb-2">
-                                        <button onClick={() => setPlayerOverallExp(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-xl">-</button>
-                                        <div className="flex flex-wrap justify-center gap-1 w-48">{[...Array(15)].map((_, i) => (<div key={i} className={`exp-dot ${getOverallExpDotColorClass(i)}`}></div>))}</div>
-                                        <button onClick={() => setPlayerOverallExp(p => Math.min(15, p+1))} className="btn-theme btn-green px-2 py-0.5 text-xl">+</button>
-                                    </div>
-                                    <span className="text-xl font-bold text-white">{playerOverallExp}/15</span>
-                                </div>
                                 <div className="flex items-center justify-center space-x-4 mb-4">
                                     <TurnIndicator isMyTurn={isMyTurn} onToggleTurn={toggleMyTurn} />
                                     <button onClick={() => setShowMovementModal(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-cyan-500 border-cyan-700 hover:scale-105 active:scale-95" title="Movimento">🎲</button>
                                 </div>
                                 <CoinFlipper />
                                 <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} onConfusedRollAttempt={handleConfusedRollAttempt} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
-                                <DiceRoller title="RITIRATA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                                <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
                                 <DiceRoller 
                                     title="CATTURA" 
                                     isCaptureRoller={true} 
                                     isMyTurn={isMyTurn} 
-                                    onDiceRollComplete={() => {}} 
+                                    onDiceRollComplete={toggleMyTurn} 
                                     onCaptureCoinFlipNeeded={handleCaptureCoinFlipNeeded} 
                                     onDisplayGlobalBanner={displayGlobalBanner} 
                                     wildPokemonHpStatus={wildPokemonHpStatus}
@@ -2508,7 +2562,20 @@
                             </div>
                             <div className="w-full flex justify-center mt-8"><MedalDisplay gymMedals={gymMedals} onToggleMedal={(i) => setGymMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} /></div>
                             <div className="w-full flex justify-center mt-4"><HMDisplay gymMedals={gymMedals} /></div>
-                            <div className="w-full flex justify-center mt-8 pb-20"><EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} /></div>
+                            <div className="w-full flex justify-center mt-8"><EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} /></div>
+                            <div className="w-full flex justify-center mt-8">
+                                <div className="p-4 bg-gray-800 rounded-xl shadow-lg border-4 border-yellow-400 max-w-md w-full">
+                                    <div className="flex flex-col items-center w-full">
+                                        <h3 className="text-xl font-bold text-yellow-300 mb-2">EXP Totali</h3>
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <button onClick={() => setPlayerOverallExp(p => Math.max(0, p-1))} className="btn-theme btn-red px-2 py-0.5 text-xl">-</button>
+                                            <div className="flex flex-wrap justify-center gap-1 w-48">{[...Array(25)].map((_, i) => (<div key={i} className={`exp-dot ${getOverallExpDotColorClass(i)}`}></div>))}</div>
+                                            <button onClick={() => setPlayerOverallExp(p => Math.min(25, p+1))} className="btn-theme btn-green px-2 py-0.5 text-xl">+</button>
+                                        </div>
+                                        <span className="text-xl font-bold text-white">{playerOverallExp}/25</span>
+                                    </div>
+                                </div>
+                            </div>
                             <div className="w-full flex justify-center mt-8 pb-20"><button onClick={() => setShowClearConfirm(true)} className="flex items-center justify-center w-16 h-16 rounded-full text-4xl shadow-md border-4 bg-red-600 border-red-800 hover:scale-105 active:scale-95" title="Resetta dati giocatore">🗑️</button></div>
                             {showClearConfirm && <div className="zoom-modal-overlay"><div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-red-500"><h3 className="text-2xl font-bold text-red-400 mb-6 text-center">Resettare tutti i dati del giocatore?</h3><div className="flex space-x-4"><button onClick={handleFullReset} className="btn-theme btn-red">Sì</button><button onClick={() => setShowClearConfirm(false)} className="btn-theme btn-gray">No</button></div></div></div>}
                         </div>
@@ -2587,8 +2654,8 @@
             const handlePalestreCardSelection = (palestreCard, wasBoardEmpty) => {
                 const trainer1 = trainersDbCards.find(c => c.name === `${palestreCard.name}-1`);
                 const trainer2 = trainersDbCards.find(c => c.name === `${palestreCard.name}-2`);
-                updateCardInSlot(0, trainer1 ? {...trainer1, baseHp: trainer1.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty } : null);
-                updateCardInSlot(1, trainer2 ? {...trainer2, baseHp: trainer2.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: false } : null);
+                updateCardInSlot(0, trainer1 ? {...trainer1, baseHp: trainer1.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty, evolutionStage: 0 } : null);
+                updateCardInSlot(1, trainer2 ? {...trainer2, baseHp: trainer2.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: false, evolutionStage: 0 } : null);
             };
 
 
@@ -2606,7 +2673,7 @@
                         if (randomCard.tipo === 'a') {
                             handlePalestreCardSelection(randomCard, wasBoardEmpty);
                         } else {
-                            updateCardInSlot(0, { imageUrl: randomCard.image_url, baseHp: randomCard.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty });
+                            updateCardInSlot(0, { imageUrl: randomCard.image_url, baseHp: randomCard.hp || 0, damageTaken: 0, statuses: Array(5).fill(false), exp: 0, isActivePokemon: wasBoardEmpty, evolutionStage: 0 });
                         }
                     });
                 } catch (error) {
@@ -2631,7 +2698,7 @@
                         </div>
                         <CoinFlipper />
                         <DiceRoller title="ATTACCA" isAttackRoller={true} isDiceRollDisabled={diceRollDisableStatus} isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
-                        <DiceRoller title="RITIRATA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
+                        <DiceRoller title="SCAMBIA/FUGA" isMyTurn={isMyTurn} onDiceRollComplete={toggleMyTurn} onDisplayGlobalBanner={displayGlobalBanner} />
                     </div>
                     {showClearConfirm && <div className="zoom-modal-overlay"><div className="zoom-modal-content bg-gray-800 p-6 rounded-xl border-4 border-red-500"><h3 className="text-2xl font-bold text-red-400 mb-6 text-center">Svuotare tutti gli slot?</h3><div className="flex space-x-4"><button onClick={() => {setCards(Array(6).fill(null)); setShowClearConfirm(false);}} className="btn-theme btn-red">Sì</button><button onClick={() => setShowClearConfirm(false)} className="btn-theme btn-gray">No</button></div></div></div>}
                     <div className="grid grid-cols-1 gap-8 w-full max-w-xs mt-8 pb-8"> 
