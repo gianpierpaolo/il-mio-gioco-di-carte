@@ -1993,8 +1993,9 @@
                             <div className="flex flex-col space-y-3 w-full">
                                 <button onClick={() => onVictoryClick({ currency: 1, prizes: 0, exp: 1 })} className="btn-theme btn-blue w-full">Cattura Pokemon Selvatico</button>
                                 <button onClick={() => onVictoryClick({ currency: 1, prizes: 1, exp: 1 })} className="btn-theme btn-blue w-full">Sconfitta Pokemon Selvatico</button>
+                                <button onClick={() => onVictoryClick({ currency: 0, prizes: 0, exp: 1 })} className="btn-theme btn-blue w-full">Sconfitta Pokémon Allenatore</button>
                                 <button onClick={() => onVictoryClick({ currency: 2, prizes: 1, exp: 1 })} className="btn-theme btn-blue w-full">Vittoria vs Allenatore</button>
-                                <button onClick={() => onVictoryClick({ currency: 4, prizes: 2, exp: 2 })} className="btn-theme btn-blue w-full">Vittoria vs Palestra/Superquattro</button>
+                                <button onClick={() => onVictoryClick({ currency: 4, prizes: 2, exp: 1 })} className="btn-theme btn-blue w-full">Vittoria vs Palestra/Superquattro</button>
                                 <button onClick={() => onVictoryClick({ currency: 8, prizes: 2, exp: 2 })} className="btn-theme btn-blue w-full">Vittoria vs Altro Giocatore</button>
                             </div>
                         ) : (
@@ -2560,11 +2561,11 @@
                                         {playerControlElements}
                                     </div>
                                     
-                                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                         {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus === 'paralyzed'} onSendToBox={sendCardToBox} onRecallFromBox={recallCardFromBox} boxCards={boxCards} pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} role="player" showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} onOpenHealingModal={handleOpenHealingModal} isTonicEvolveActive={isTonicEvolveActive} onEvolutionComplete={() => setIsTonicEvolveActive(false)} />)}
                                     </div>
 
-                                    <div className="w-full flex flex-row flex-wrap items-start justify-center gap-4 mt-8">
+                                    <div className="w-full flex flex-row flex-wrap items-stretch justify-center gap-4 mt-8">
                                         <MedalDisplay gymMedals={gymMedals} onToggleMedal={(i) => setGymMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
                                         <HMDisplay gymMedals={gymMedals} />
                                         <EliteFourDisplay eliteFourMedals={eliteFourMedals} onToggleMedal={(i) => setEliteFourMedals(p => {const n=[...p]; n[i]=!n[i]; return n;})} />
@@ -2768,7 +2769,7 @@
                             <div className="w-full flex flex-row flex-wrap items-stretch justify-center gap-4 p-4 mb-6 bg-gray-800/80 rounded-2xl shadow-xl border-4 border-yellow-400">
                                 {masterControlElements}
                             </div>
-                            <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {cards.map((card, i) => <CardSlot key={i} slotIndex={i} cardData={card} onUpdateCard={updateCardInSlot} onToggleActivePokemon={handleActivePokemonToggle} isMyTurn={isMyTurn} activeCardParalyzed={diceRollDisableStatus} role="master" pokemonDbCards={pokemonDbCards} trainersDbCards={trainersDbCards} palestreDbCards={palestreDbCards} isDbLoading={isDbLoading} dbError={dbError} onSelectTableAndFetchRandom={fetchRandomCardFromTable} onSelectPalestreCard={handlePalestreCardSelection} showTemporaryCard={showTemporaryCard} isBoardEmpty={cards.every(c => !c)} />)}
                             </div>
                         </div>
